@@ -39,7 +39,8 @@ export const Route = createFileRoute("/clients/$clientId")({
 });
 
 function ClientProfile() {
-  const { client } = Route.useLoaderData();
+  const { clientId } = Route.useParams();
+  const client = clients.find((c) => c.id === clientId)!;
   const history = projects.filter((p) => p.clientId === client.id);
 
   const facts = [
