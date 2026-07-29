@@ -11,6 +11,8 @@ import {
   BarChart3,
   Settings,
   Sparkles,
+  Bot,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +28,11 @@ const work = [
   { title: "Tasks", url: "/tasks", icon: CheckSquare },
   { title: "Files", url: "/files", icon: FileText },
   { title: "Calendar", url: "/calendar", icon: CalendarDays },
+];
+
+const ai = [
+  { title: "AI Workspace", url: "/ai-workspace", icon: Bot },
+  { title: "Website Dev", url: "/website", icon: Globe },
 ];
 
 const insight = [
@@ -106,6 +113,7 @@ export function AppSidebar({ open }: { open: boolean }) {
         <div className="scrollbar-thin flex-1 overflow-y-auto py-2">
           <Section label="Overview" items={main} pathname={pathname} />
           <Section label="Delivery" items={work} pathname={pathname} />
+          <Section label="AI & Build" items={ai} pathname={pathname} />
           <Section label="Company" items={insight} pathname={pathname} />
         </div>
 
