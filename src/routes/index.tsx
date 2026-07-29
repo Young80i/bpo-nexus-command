@@ -137,7 +137,7 @@ function Dashboard() {
             <span className="rounded-full bg-success/12 px-2.5 py-1 text-xs font-semibold text-success">+22.9%</span>
           </div>
           <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={revenueSeries} margin={{ left: -18, right: 6, top: 6 }}>
+            <AreaChart data={revenueSeries} margin={{ left: -6, right: 6, top: 6 }}>
               <defs>
                 <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.45} />
@@ -146,7 +146,13 @@ function Dashboard() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis dataKey="month" tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
-              <YAxis tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                fontSize={12}
+                stroke="var(--muted-foreground)"
+                tickFormatter={(v: number) => `$${v / 1000}k`}
+              />
               <Tooltip content={<ChartTooltip />} />
               <Area
                 type="monotone"
