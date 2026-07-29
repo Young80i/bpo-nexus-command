@@ -204,3 +204,19 @@
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
+
+@utility field {
+  display: block;
+  width: 100%;
+  height: 2.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background-color: var(--surface-2);
+  padding-inline: 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  &:focus {
+    border-color: color-mix(in oklab, var(--primary) 50%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 18%, transparent);
+  }
+}
