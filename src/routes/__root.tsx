@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "../lib/theme";
 import { ProjectsProvider } from "../lib/projects-store";
+import { WorkspaceProvider } from "../lib/workspace-store";
 import { AppShell } from "../components/layout/app-shell";
 
 function NotFoundComponent() {
@@ -122,10 +123,12 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <ProjectsProvider>
-          <AppShell>
-            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <Outlet />
-          </AppShell>
+          <WorkspaceProvider>
+            <AppShell>
+              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+              <Outlet />
+            </AppShell>
+          </WorkspaceProvider>
         </ProjectsProvider>
       </ThemeProvider>
     </QueryClientProvider>
