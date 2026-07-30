@@ -14,6 +14,7 @@ import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as MilestonesRouteImport } from './routes/milestones'
+import { Route as GameDevRouteImport } from './routes/game-dev'
 import { Route as FilesRouteImport } from './routes/files'
 import { Route as ConversationsRouteImport } from './routes/conversations'
 import { Route as CalendarRouteImport } from './routes/calendar'
@@ -46,6 +47,11 @@ const ProjectsRoute = ProjectsRouteImport.update({
 const MilestonesRoute = MilestonesRouteImport.update({
   id: '/milestones',
   path: '/milestones',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GameDevRoute = GameDevRouteImport.update({
+  id: '/game-dev',
+  path: '/game-dev',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FilesRoute = FilesRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof CalendarRoute
   '/conversations': typeof ConversationsRoute
   '/files': typeof FilesRoute
+  '/game-dev': typeof GameDevRoute
   '/milestones': typeof MilestonesRoute
   '/projects': typeof ProjectsRoute
   '/settings': typeof SettingsRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/calendar': typeof CalendarRoute
   '/conversations': typeof ConversationsRoute
   '/files': typeof FilesRoute
+  '/game-dev': typeof GameDevRoute
   '/milestones': typeof MilestonesRoute
   '/projects': typeof ProjectsRoute
   '/settings': typeof SettingsRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/calendar': typeof CalendarRoute
   '/conversations': typeof ConversationsRoute
   '/files': typeof FilesRoute
+  '/game-dev': typeof GameDevRoute
   '/milestones': typeof MilestonesRoute
   '/projects': typeof ProjectsRoute
   '/settings': typeof SettingsRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/conversations'
     | '/files'
+    | '/game-dev'
     | '/milestones'
     | '/projects'
     | '/settings'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/conversations'
     | '/files'
+    | '/game-dev'
     | '/milestones'
     | '/projects'
     | '/settings'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/conversations'
     | '/files'
+    | '/game-dev'
     | '/milestones'
     | '/projects'
     | '/settings'
@@ -190,6 +202,7 @@ export interface RootRouteChildren {
   CalendarRoute: typeof CalendarRoute
   ConversationsRoute: typeof ConversationsRoute
   FilesRoute: typeof FilesRoute
+  GameDevRoute: typeof GameDevRoute
   MilestonesRoute: typeof MilestonesRoute
   ProjectsRoute: typeof ProjectsRoute
   SettingsRoute: typeof SettingsRoute
@@ -234,6 +247,13 @@ declare module '@tanstack/react-router' {
       path: '/milestones'
       fullPath: '/milestones'
       preLoaderRoute: typeof MilestonesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/game-dev': {
+      id: '/game-dev'
+      path: '/game-dev'
+      fullPath: '/game-dev'
+      preLoaderRoute: typeof GameDevRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/files': {
@@ -302,6 +322,7 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarRoute: CalendarRoute,
   ConversationsRoute: ConversationsRoute,
   FilesRoute: FilesRoute,
+  GameDevRoute: GameDevRoute,
   MilestonesRoute: MilestonesRoute,
   ProjectsRoute: ProjectsRoute,
   SettingsRoute: SettingsRoute,
