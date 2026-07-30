@@ -13,6 +13,8 @@ import {
   Sparkles,
   Bot,
   Globe,
+  Gamepad2,
+
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +35,9 @@ const work = [
 const ai = [
   { title: "AI Workspace", url: "/ai-workspace", icon: Bot },
   { title: "Website Dev", url: "/website", icon: Globe },
+  { title: "Game Dev", url: "/game-dev", icon: Gamepad2 },
 ];
+
 
 const insight = [
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
