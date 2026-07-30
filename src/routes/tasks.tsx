@@ -194,11 +194,11 @@ function TasksPage() {
                         dragId === t.id && "opacity-50",
                       )}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="min-w-0 text-sm font-semibold">{t.title}</p>
+                      <p className="text-sm font-semibold leading-snug">{t.title}</p>
+                      <p className="mt-1 truncate text-[0.7rem] text-muted-foreground">{projectName(t.projectId)}</p>
+                      <div className="mt-2">
                         <PriorityBadge priority={t.priority} />
                       </div>
-                      <p className="mt-1 truncate text-[0.7rem] text-muted-foreground">{projectName(t.projectId)}</p>
                       <ProgressBar value={t.progress} className="mt-3" />
                       <div className="mt-2.5 flex items-center gap-2 text-[0.7rem] text-muted-foreground">
                         <span className="grid h-6 w-6 place-items-center rounded-full bg-surface-2 text-[0.6rem] font-bold text-foreground">
