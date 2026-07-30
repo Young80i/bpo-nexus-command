@@ -7,6 +7,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  ComposedChart,
   Legend,
   Line,
   LineChart,
@@ -155,7 +156,7 @@ function AnalyticsPage() {
           <h2 className="text-base font-semibold">Revenue vs Target</h2>
           <p className="mb-3 text-xs text-muted-foreground">Booked revenue against plan for the selected range</p>
           <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={data.revenueSeries} margin={{ left: 4, right: 6, top: 6 }}>
+            <ComposedChart data={data.revenueSeries} margin={{ left: 4, right: 6, top: 6 }}>
               <defs>
                 <linearGradient id="ar" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.45} />
@@ -175,7 +176,7 @@ function AnalyticsPage() {
               <Tooltip content={<ChartTooltip />} />
               <Area type="monotone" dataKey="revenue" name="Revenue" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#ar)" />
               <Line type="monotone" dataKey="target" name="Target" stroke="var(--chart-2)" strokeDasharray="5 4" dot={false} />
-            </AreaChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
 
@@ -206,14 +207,14 @@ function AnalyticsPage() {
           <h2 className="text-base font-semibold">Completed Projects & Cycle Time</h2>
           <p className="mb-3 text-xs text-muted-foreground">Deliveries and average days to completion</p>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={data.completionSeries} margin={{ left: -14, right: 6 }}>
+            <ComposedChart data={data.completionSeries} margin={{ left: -14, right: 6 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis dataKey="period" tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
               <YAxis tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
               <Tooltip content={<ChartTooltip />} cursor={{ fill: "var(--accent)", opacity: 0.4 }} />
               <Bar dataKey="completed" name="Completed" fill="var(--chart-1)" radius={[6, 6, 0, 0]} />
               <Line type="monotone" dataKey="avgDays" name="Avg days" stroke="var(--chart-3)" strokeWidth={2} dot={false} />
-            </BarChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
 
