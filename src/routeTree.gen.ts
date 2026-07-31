@@ -23,6 +23,7 @@ import { Route as AiWorkspaceRouteImport } from './routes/ai-workspace'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientsIndexRouteImport } from './routes/clients.index'
 import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const WebsiteRoute = WebsiteRouteImport.update({
   id: '/website',
@@ -94,6 +95,11 @@ const ClientsClientIdRoute = ClientsClientIdRouteImport.update({
   path: '/clients/$clientId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/tasks': typeof TasksRoute
   '/website': typeof WebsiteRoute
+  '/api/chat': typeof ApiChatRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/clients/': typeof ClientsIndexRoute
 }
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/tasks': typeof TasksRoute
   '/website': typeof WebsiteRoute
+  '/api/chat': typeof ApiChatRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/clients': typeof ClientsIndexRoute
 }
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/tasks': typeof TasksRoute
   '/website': typeof WebsiteRoute
+  '/api/chat': typeof ApiChatRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/clients/': typeof ClientsIndexRoute
 }
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tasks'
     | '/website'
+    | '/api/chat'
     | '/clients/$clientId'
     | '/clients/'
   fileRoutesByTo: FileRoutesByTo
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tasks'
     | '/website'
+    | '/api/chat'
     | '/clients/$clientId'
     | '/clients'
   id:
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tasks'
     | '/website'
+    | '/api/chat'
     | '/clients/$clientId'
     | '/clients/'
   fileRoutesById: FileRoutesById
@@ -208,6 +220,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   TasksRoute: typeof TasksRoute
   WebsiteRoute: typeof WebsiteRoute
+  ApiChatRoute: typeof ApiChatRoute
   ClientsClientIdRoute: typeof ClientsClientIdRoute
   ClientsIndexRoute: typeof ClientsIndexRoute
 }
@@ -312,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientsClientIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -328,19 +348,10 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   TasksRoute: TasksRoute,
   WebsiteRoute: WebsiteRoute,
+  ApiChatRoute: ApiChatRoute,
   ClientsClientIdRoute: ClientsClientIdRoute,
   ClientsIndexRoute: ClientsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
