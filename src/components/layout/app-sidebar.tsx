@@ -34,6 +34,7 @@ const work = [
 
 const ai = [
   { title: "AI Workspace", url: "/ai-workspace", icon: Bot },
+  { title: "Automation", url: "/automation", icon: Sparkles },
   { title: "Website Dev", url: "/website", icon: Globe },
   { title: "Game Dev", url: "/game-dev", icon: Gamepad2 },
 ];
