@@ -127,10 +127,14 @@ function RootComponent() {
       <ThemeProvider>
         <ProjectsProvider>
           <WorkspaceProvider>
-            <AppShell>
-              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-              <Outlet />
-            </AppShell>
+            <AutomationProvider>
+              <AppShell>
+                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                <Outlet />
+              </AppShell>
+              <CtoAssistant />
+              <Toaster />
+            </AutomationProvider>
           </WorkspaceProvider>
         </ProjectsProvider>
       </ThemeProvider>
