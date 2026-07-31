@@ -14,6 +14,9 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "../lib/theme";
 import { ProjectsProvider } from "../lib/projects-store";
 import { WorkspaceProvider } from "../lib/workspace-store";
+import { AutomationProvider } from "../lib/automation-store";
+import { CtoAssistant } from "../components/ai/cto-panel";
+import { Toaster } from "../components/ui/sonner";
 import { AppShell } from "../components/layout/app-shell";
 
 function NotFoundComponent() {
