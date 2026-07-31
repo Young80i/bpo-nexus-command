@@ -18,6 +18,7 @@ import { Route as GameDevRouteImport } from './routes/game-dev'
 import { Route as FilesRouteImport } from './routes/files'
 import { Route as ConversationsRouteImport } from './routes/conversations'
 import { Route as CalendarRouteImport } from './routes/calendar'
+import { Route as AutomationRouteImport } from './routes/automation'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AiWorkspaceRouteImport } from './routes/ai-workspace'
 import { Route as IndexRouteImport } from './routes/index'
@@ -70,6 +71,11 @@ const CalendarRoute = CalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AutomationRoute = AutomationRouteImport.update({
+  id: '/automation',
+  path: '/automation',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-workspace': typeof AiWorkspaceRoute
   '/analytics': typeof AnalyticsRoute
+  '/automation': typeof AutomationRoute
   '/calendar': typeof CalendarRoute
   '/conversations': typeof ConversationsRoute
   '/files': typeof FilesRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-workspace': typeof AiWorkspaceRoute
   '/analytics': typeof AnalyticsRoute
+  '/automation': typeof AutomationRoute
   '/calendar': typeof CalendarRoute
   '/conversations': typeof ConversationsRoute
   '/files': typeof FilesRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/ai-workspace': typeof AiWorkspaceRoute
   '/analytics': typeof AnalyticsRoute
+  '/automation': typeof AutomationRoute
   '/calendar': typeof CalendarRoute
   '/conversations': typeof ConversationsRoute
   '/files': typeof FilesRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-workspace'
     | '/analytics'
+    | '/automation'
     | '/calendar'
     | '/conversations'
     | '/files'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-workspace'
     | '/analytics'
+    | '/automation'
     | '/calendar'
     | '/conversations'
     | '/files'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-workspace'
     | '/analytics'
+    | '/automation'
     | '/calendar'
     | '/conversations'
     | '/files'
@@ -211,6 +223,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiWorkspaceRoute: typeof AiWorkspaceRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  AutomationRoute: typeof AutomationRoute
   CalendarRoute: typeof CalendarRoute
   ConversationsRoute: typeof ConversationsRoute
   FilesRoute: typeof FilesRoute
@@ -290,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/automation': {
+      id: '/automation'
+      path: '/automation'
+      fullPath: '/automation'
+      preLoaderRoute: typeof AutomationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/analytics': {
       id: '/analytics'
       path: '/analytics'
@@ -339,6 +359,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiWorkspaceRoute: AiWorkspaceRoute,
   AnalyticsRoute: AnalyticsRoute,
+  AutomationRoute: AutomationRoute,
   CalendarRoute: CalendarRoute,
   ConversationsRoute: ConversationsRoute,
   FilesRoute: FilesRoute,
