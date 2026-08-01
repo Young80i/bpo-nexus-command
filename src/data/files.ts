@@ -4,11 +4,16 @@ import { milestones } from "./workspace";
 export const fileKinds = [
   "Image",
   "Video",
+  "Audio",
   "Document",
   "PDF",
+  "Spreadsheet",
+  "Presentation",
   "ZIP",
   "Source Code",
   "Game Asset",
+  "Data",
+  "Other",
 ] as const;
 export type FileKind = (typeof fileKinds)[number];
 
@@ -24,7 +29,11 @@ export type VaultFile = {
   milestoneId: string | null;
   description: string;
   preview: string | null;
+  /** Data URL for files uploaded in this workspace (small files only). */
+  dataUrl?: string | null;
+  mime?: string | null;
 };
+
 
 const seeds: { name: string; kind: FileKind; size: string; description: string; preview?: string }[] = [
   {
