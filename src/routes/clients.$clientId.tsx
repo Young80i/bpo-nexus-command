@@ -1,4 +1,5 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useState } from "react";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Building2,
@@ -13,6 +14,8 @@ import { PageHeader } from "@/components/layout/app-shell";
 import { ProgressBar, StatusBadge } from "@/components/badges";
 import { Button } from "@/components/ui/button";
 import { clients, formatMoney, projects } from "@/data/demo";
+import { useClients } from "@/lib/clients-store";
+import { ClientDialog } from "@/components/clients/client-dialog";
 
 export const Route = createFileRoute("/clients/$clientId")({
   loader: ({ params }) => {
@@ -40,7 +43,10 @@ export const Route = createFileRoute("/clients/$clientId")({
 
 function ClientProfile() {
   const { clientId } = Route.useParams();
-  const client = clients.find((c) => c.id === clientId)!;
+  const navigate = useNavigate();
+  const { get } = useClients();
+  const [editing, setEditing] = useState(false);
+  const client = get(clientId) ?? clients.find((c) => c.id === clientId)!;
   const history = projects.filter((p) => p.clientId === client.id);
 
   const facts = [
@@ -78,10 +84,12 @@ function ClientProfile() {
             <span className="flex items-center gap-1 rounded-full bg-warning/12 px-3 py-1 text-sm font-semibold text-warning">
               <Star className="h-3.5 w-3.5 fill-current" /> {client.rating.toFixed(1)}
             </span>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/conversations" })}>
               Message
             </Button>
-            <Button size="sm">Edit client</Button>
+            <Button size="sm" onClick={() => setEditing(true)}>
+              Edit client
+            </Button>
           </div>
         </div>
       </div>
@@ -174,6 +182,7 @@ function ClientProfile() {
           </div>
         </div>
       </div>
+      {editing && <ClientDialog client={client} onClose={() => setEditing(false)} />}
     </div>
   );
 }
