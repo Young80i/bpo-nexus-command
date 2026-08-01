@@ -139,6 +139,8 @@ export function projectCompletion(list: Milestone[]) {
 
 export type MessageKind = "client" | "team" | "note";
 
+export type MessageStatus = "Sent" | "Delivered" | "Read" | "Draft";
+
 export type Message = {
   id: string;
   conversationId: string;
@@ -149,7 +151,11 @@ export type Message = {
   time: string;
   attachments?: { name: string; size: string }[];
   unread?: boolean;
+  status?: MessageStatus;
+  createdAt?: string;
+  edited?: boolean;
 };
+
 
 export type Conversation = {
   id: string;
