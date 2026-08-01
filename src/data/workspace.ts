@@ -312,7 +312,10 @@ export type Prompt = {
   codeNotes: string;
   versions: PromptVersion[];
   updated: string;
+  status?: "Draft" | "Active" | "Archived";
+  created?: string;
 };
+
 
 export const prompts: Prompt[] = [
   {
