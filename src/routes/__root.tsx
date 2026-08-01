@@ -18,6 +18,9 @@ import { AutomationProvider } from "../lib/automation-store";
 import { CtoAssistant } from "../components/ai/cto-panel";
 import { Toaster } from "../components/ui/sonner";
 import { AppShell } from "../components/layout/app-shell";
+import { ClientsProvider } from "../lib/clients-store";
+import { FilesProvider } from "../lib/files-store";
+import { ProfileProvider } from "../lib/profile-store";
 
 function NotFoundComponent() {
   return (
@@ -125,6 +128,9 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
+        <ProfileProvider>
+        <ClientsProvider>
+        <FilesProvider>
         <ProjectsProvider>
           <WorkspaceProvider>
             <AutomationProvider>
@@ -137,6 +143,9 @@ function RootComponent() {
             </AutomationProvider>
           </WorkspaceProvider>
         </ProjectsProvider>
+        </FilesProvider>
+        </ClientsProvider>
+        </ProfileProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

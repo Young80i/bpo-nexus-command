@@ -1,9 +1,13 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowUpDown, Search, Star, UserPlus } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowUpDown, MessageSquare, Pencil, Search, Star, Trash2, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { clients } from "@/data/demo";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { ClientDialog } from "@/components/clients/client-dialog";
+import { useClients } from "@/lib/clients-store";
+import type { Client } from "@/data/demo";
 
 export const Route = createFileRoute("/clients/")({
   head: () => ({
@@ -23,10 +27,14 @@ export const Route = createFileRoute("/clients/")({
 const sorts = ["Revenue", "Projects", "Rating", "Name"] as const;
 
 function ClientsPage() {
+  const navigate = useNavigate();
+  const { clients, remove } = useClients();
+  const { confirm, element: confirmEl } = useConfirm();
   const [query, setQuery] = useState("");
   const [country, setCountry] = useState("All");
   const [status, setStatus] = useState("All");
   const [sort, setSort] = useState<(typeof sorts)[number]>("Revenue");
+  const [dialog, setDialog] = useState<{ mode: "create" } | { mode: "edit"; client: Client } | null>(null);
 
   const countries = ["All", ...Array.from(new Set(clients.map((c) => c.country)))];
 
@@ -49,7 +57,7 @@ function ClientsPage() {
         if (sort === "Rating") return b.rating - a.rating;
         return b.totalRevenue - a.totalRevenue;
       });
-  }, [query, country, status, sort]);
+  }, [clients, query, country, status, sort]);
 
   const totalRevenue = clients.reduce((s, c) => s + c.totalRevenue, 0);
 
@@ -59,7 +67,7 @@ function ClientsPage() {
         title="Clients"
         description={`${clients.length} accounts · $${totalRevenue.toLocaleString()} lifetime revenue`}
         actions={
-          <Button size="sm" className="gap-1.5">
+          <Button size="sm" className="gap-1.5" onClick={() => setDialog({ mode: "create" })}>
             <UserPlus className="h-4 w-4" /> Add Client
           </Button>
         }
@@ -109,59 +117,83 @@ function ClientsPage() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {visible.map((c) => (
-          <Link
-            key={c.id}
-            to="/clients/$clientId"
-            params={{ clientId: c.id }}
-            className="surface-card lift block p-5"
-          >
-            <div className="flex items-start gap-3">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl brand-gradient text-sm font-bold text-primary-foreground">
-                {c.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{c.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{c.company}</p>
+          <div key={c.id} className="surface-card lift group relative p-5">
+            <Link to="/clients/$clientId" params={{ clientId: c.id }} className="block">
+              <div className="flex items-start gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl brand-gradient text-sm font-bold text-primary-foreground">
+                  {c.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">{c.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{c.company}</p>
+                </div>
+                <span className="flex shrink-0 items-center gap-1 rounded-full bg-warning/12 px-2 py-0.5 text-xs font-semibold text-warning">
+                  <Star className="h-3 w-3 fill-current" />
+                  {c.rating.toFixed(1)}
+                </span>
               </div>
-              <span className="flex shrink-0 items-center gap-1 rounded-full bg-warning/12 px-2 py-0.5 text-xs font-semibold text-warning">
-                <Star className="h-3 w-3 fill-current" />
-                {c.rating.toFixed(1)}
-              </span>
-            </div>
 
-            <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg border border-border bg-surface-2 p-3 text-center">
-              <div>
-                <p className="text-sm font-bold">{c.totalProjects}</p>
-                <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">Projects</p>
+              <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg border border-border bg-surface-2 p-3 text-center">
+                <div>
+                  <p className="text-sm font-bold">{c.totalProjects}</p>
+                  <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">Projects</p>
+                </div>
+                <div>
+                  <p className="text-sm font-bold">${(c.totalRevenue / 1000).toFixed(1)}k</p>
+                  <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">Revenue</p>
+                </div>
+                <div>
+                  <p className="text-sm font-bold">{c.countryCode}</p>
+                  <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{c.country.slice(0, 10)}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-bold">${(c.totalRevenue / 1000).toFixed(1)}k</p>
-                <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">Revenue</p>
-              </div>
-              <div>
-                <p className="text-sm font-bold">{c.countryCode}</p>
-                <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{c.country.slice(0, 10)}</p>
-              </div>
-            </div>
 
-            <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-              <span className="truncate">{c.freelancerUsername}</span>
-              <span
-                className={`shrink-0 rounded-full px-2 py-0.5 font-semibold ${
-                  c.status === "Active"
-                    ? "bg-success/12 text-success"
-                    : c.status === "Prospect"
-                      ? "bg-info/12 text-info"
-                      : "bg-muted text-muted-foreground"
-                }`}
+              <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                <span className="truncate">{c.freelancerUsername}</span>
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 font-semibold ${
+                    c.status === "Active"
+                      ? "bg-success/12 text-success"
+                      : c.status === "Prospect"
+                        ? "bg-info/12 text-info"
+                        : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {c.status}
+                </span>
+              </div>
+            </Link>
+
+            <div className="mt-3 flex items-center gap-1.5 border-t border-border/70 pt-3">
+              <Button variant="outline" size="sm" onClick={() => navigate({ to: "/conversations" })}>
+                <MessageSquare className="h-3.5 w-3.5" /> Message
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDialog({ mode: "edit", client: c })}>
+                <Pencil className="h-3.5 w-3.5" /> Edit
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="ml-auto"
+                title="Delete client"
+                onClick={() =>
+                  confirm({
+                    title: `Delete ${c.name}?`,
+                    description: "This permanently removes the client record from your CRM.",
+                    onConfirm: () => {
+                      remove(c.id);
+                      toast.success("Client deleted");
+                    },
+                  })
+                }
               >
-                {c.status}
-              </span>
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
             </div>
-          </Link>
+          </div>
         ))}
       </div>
 
@@ -170,6 +202,14 @@ function ClientsPage() {
           No clients match those filters.
         </div>
       )}
+
+      {dialog && (
+        <ClientDialog
+          client={dialog.mode === "edit" ? dialog.client : undefined}
+          onClose={() => setDialog(null)}
+        />
+      )}
+      {confirmEl}
     </div>
   );
 }
