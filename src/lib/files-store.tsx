@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { vaultFiles as seedFiles, type FileKind, type VaultFile } from "@/data/files";
 import { usePersistentState, uid, today, formatBytes } from "@/lib/persist";
+import { useSupabaseFiles } from "@/lib/supabase/hooks/useSupabaseFiles";
 
 const MAX_INLINE_BYTES = 1.5 * 1024 * 1024;
 
@@ -9,25 +10,35 @@ type Ctx = {
   add: (f: Omit<VaultFile, "id">) => VaultFile;
   update: (id: string, patch: Partial<VaultFile>) => void;
   remove: (id: string) => void;
+  loading: boolean;
+  error: Error | null;
+  refresh: () => Promise<void>;
 };
 
 const FilesContext = createContext<Ctx | null>(null);
 
 export function FilesProvider({ children }: { children: ReactNode }) {
-  const [files, setFiles] = usePersistentState<VaultFile[]>("files", seedFiles);
+  // Use Supabase hook for data management
+  const { files, loading, error, addFile, updateFile, deleteFile, refresh } = useSupabaseFiles();
 
   const value = useMemo<Ctx>(
     () => ({
       files,
       add: (f) => {
-        const created: VaultFile = { ...f, id: uid("f") };
-        setFiles((prev) => [created, ...prev]);
-        return created;
+        const created = addFile(f);
+        return created as unknown as VaultFile;
       },
-      update: (id, patch) => setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, ...patch } : f))),
-      remove: (id) => setFiles((prev) => prev.filter((f) => f.id !== id)),
+      update: (id, patch) => {
+        updateFile(id, patch).catch(console.error);
+      },
+      remove: (id) => {
+        deleteFile(id).catch(console.error);
+      },
+      loading,
+      error,
+      refresh
     }),
-    [files, setFiles],
+    [files, loading, error, addFile, updateFile, deleteFile, refresh],
   );
 
   return <FilesContext.Provider value={value}>{children}</FilesContext.Provider>;

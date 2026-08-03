@@ -113,7 +113,7 @@ export function CtoAssistant() {
         className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full brand-gradient px-4 py-3 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-lift)] transition-transform duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {open ? <X className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-        <span className="hidden sm:inline">{open ? "Close" : "AI CTO"}</span>
+        <span className="hidden sm:inline">{open ? "Close" : "JARVIS"}</span>
       </button>
 
       <aside
@@ -128,7 +128,7 @@ export function CtoAssistant() {
             <Bot className="h-[1.05rem] w-[1.05rem]" />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">AI CTO & Project Architect</p>
+            <p className="truncate text-sm font-semibold">JARVIS & Project Architect</p>
             <p className="truncate text-[0.7rem] text-muted-foreground">
               Sees {projects.length} projects · {milestones.length} milestones · {tasks.length} tasks
             </p>

@@ -15,6 +15,7 @@ import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AutomationRouteImport } from './routes/automation'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as ConversationsRouteImport } from './routes/conversations'
+import { Route as ExecutiveDashboardRouteImport } from './routes/executive-dashboard'
 import { Route as FilesRouteImport } from './routes/files'
 import { Route as GameDevRouteImport } from './routes/game-dev'
 import { Route as MilestonesRouteImport } from './routes/milestones'
@@ -54,6 +55,11 @@ const CalendarRoute = CalendarRouteImport.update({
 const ConversationsRoute = ConversationsRouteImport.update({
   id: '/conversations',
   path: '/conversations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExecutiveDashboardRoute = ExecutiveDashboardRouteImport.update({
+  id: '/executive-dashboard',
+  path: '/executive-dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FilesRoute = FilesRouteImport.update({
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/automation': typeof AutomationRoute
   '/calendar': typeof CalendarRoute
   '/conversations': typeof ConversationsRoute
+  '/executive-dashboard': typeof ExecutiveDashboardRoute
   '/files': typeof FilesRoute
   '/game-dev': typeof GameDevRoute
   '/milestones': typeof MilestonesRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/automation': typeof AutomationRoute
   '/calendar': typeof CalendarRoute
   '/conversations': typeof ConversationsRoute
+  '/executive-dashboard': typeof ExecutiveDashboardRoute
   '/files': typeof FilesRoute
   '/game-dev': typeof GameDevRoute
   '/milestones': typeof MilestonesRoute
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/automation': typeof AutomationRoute
   '/calendar': typeof CalendarRoute
   '/conversations': typeof ConversationsRoute
+  '/executive-dashboard': typeof ExecutiveDashboardRoute
   '/files': typeof FilesRoute
   '/game-dev': typeof GameDevRoute
   '/milestones': typeof MilestonesRoute
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/automation'
     | '/calendar'
     | '/conversations'
+    | '/executive-dashboard'
     | '/files'
     | '/game-dev'
     | '/milestones'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/automation'
     | '/calendar'
     | '/conversations'
+    | '/executive-dashboard'
     | '/files'
     | '/game-dev'
     | '/milestones'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/automation'
     | '/calendar'
     | '/conversations'
+    | '/executive-dashboard'
     | '/files'
     | '/game-dev'
     | '/milestones'
@@ -226,6 +238,7 @@ export interface RootRouteChildren {
   AutomationRoute: typeof AutomationRoute
   CalendarRoute: typeof CalendarRoute
   ConversationsRoute: typeof ConversationsRoute
+  ExecutiveDashboardRoute: typeof ExecutiveDashboardRoute
   FilesRoute: typeof FilesRoute
   GameDevRoute: typeof GameDevRoute
   MilestonesRoute: typeof MilestonesRoute
@@ -280,6 +293,13 @@ declare module '@tanstack/react-router' {
       path: '/conversations'
       fullPath: '/conversations'
       preLoaderRoute: typeof ConversationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/executive-dashboard': {
+      id: '/executive-dashboard'
+      path: '/executive-dashboard'
+      fullPath: '/executive-dashboard'
+      preLoaderRoute: typeof ExecutiveDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/files': {
@@ -362,6 +382,7 @@ const rootRouteChildren: RootRouteChildren = {
   AutomationRoute: AutomationRoute,
   CalendarRoute: CalendarRoute,
   ConversationsRoute: ConversationsRoute,
+  ExecutiveDashboardRoute: ExecutiveDashboardRoute,
   FilesRoute: FilesRoute,
   GameDevRoute: GameDevRoute,
   MilestonesRoute: MilestonesRoute,

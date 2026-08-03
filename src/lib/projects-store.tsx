@@ -1,5 +1,6 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { projects as seedProjects, type Project } from "@/data/demo";
+import { useSupabaseProjects } from "@/lib/supabase/hooks/useSupabaseProjects";
 
 type Ctx = {
   projects: Project[];
@@ -8,36 +9,40 @@ type Ctx = {
   remove: (id: string) => void;
   archive: (id: string) => void;
   duplicate: (id: string) => void;
+  loading: boolean;
+  error: Error | null;
+  refresh: () => Promise<void>;
 };
 
 const ProjectsContext = createContext<Ctx | null>(null);
 
 export function ProjectsProvider({ children }: { children: ReactNode }) {
-  const [projects, setProjects] = useState<Project[]>(seedProjects);
+  // Use Supabase hook for data management
+  const { projects, loading, error, createProject, updateProject, deleteProject, archiveProject, duplicateProject, refresh } = useSupabaseProjects();
 
   const value = useMemo<Ctx>(
     () => ({
       projects,
-      create: (p) => setProjects((prev) => [{ ...p, id: `p${Date.now()}` }, ...prev]),
-      update: (id, patch) =>
-        setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p))),
-      remove: (id) => setProjects((prev) => prev.filter((p) => p.id !== id)),
-      archive: (id) =>
-        setProjects((prev) =>
-          prev.map((p) =>
-            p.id === id ? { ...p, archived: !p.archived, status: p.archived ? "In Progress" : "Archived" } : p,
-          ),
-        ),
-      duplicate: (id) =>
-        setProjects((prev) => {
-          const source = prev.find((p) => p.id === id);
-          if (!source) return prev;
-          const copy: Project = { ...source, id: `p${Date.now()}`, name: `${source.name} (Copy)` };
-          const index = prev.findIndex((p) => p.id === id);
-          return [...prev.slice(0, index + 1), copy, ...prev.slice(index + 1)];
-        }),
+      create: (p) => {
+        createProject(p).catch(console.error);
+      },
+      update: (id, patch) => {
+        updateProject(id, patch).catch(console.error);
+      },
+      remove: (id) => {
+        deleteProject(id).catch(console.error);
+      },
+      archive: (id) => {
+        archiveProject(id).catch(console.error);
+      },
+      duplicate: (id) => {
+        duplicateProject(id).catch(console.error);
+      },
+      loading,
+      error,
+      refresh
     }),
-    [projects],
+    [projects, loading, error, createProject, updateProject, deleteProject, archiveProject, duplicateProject, refresh],
   );
 
   return <ProjectsContext.Provider value={value}>{children}</ProjectsContext.Provider>;

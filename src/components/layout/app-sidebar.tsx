@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 
 const main = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Executive Dashboard", url: "/executive-dashboard", icon: BarChart3 },
   { title: "Projects", url: "/projects", icon: FolderKanban },
   { title: "Clients", url: "/clients", icon: Users },
   { title: "Conversations", url: "/conversations", icon: MessagesSquare, badge: "6" },

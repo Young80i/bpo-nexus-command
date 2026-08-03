@@ -38,15 +38,15 @@ import {
 import { analyseBrief, analyseConversation, type BriefAnalysis, type ConversationAnalysis } from "@/lib/ai.functions";
 
 export const Route = createFileRoute("/automation")({
-  head: () => ({
+    head: () => ({
     meta: [
-      { title: "AI Automation Engine — BPO Nexus" },
+      { title: "JARVIS Automation Engine — BPO Nexus" },
       {
         name: "description",
         content:
           "Automate project setup, milestone planning, health scoring, reminders and delivery packs across every project.",
       },
-      { property: "og:title", content: "AI Automation Engine — BPO Nexus" },
+      { property: "og:title", content: "JARVIS Automation Engine — BPO Nexus" },
       {
         property: "og:description",
         content: "Automated project stages, milestones, tasks, health scores, reminders and delivery packs.",
@@ -138,8 +138,8 @@ function AutomationPage() {
 
   return (
     <div className="animate-fade-in space-y-5">
-      <PageHeader
-        title="AI Automation Engine"
+            <PageHeader
+        title="JARVIS Automation Engine"
         description={`${activeCount} of ${automationCatalog.length} automations running across every project`}
         actions={
           <div className="flex gap-2">

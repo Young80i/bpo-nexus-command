@@ -10,14 +10,14 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/ai-workspace")({
   head: () => ({
-    meta: [
-      { title: "AI Workspace — Prompt Library & Versions | BPO Nexus" },
+        meta: [
+      { title: "JARVIS Workspace — Prompt Library & Versions | BPO Nexus" },
       {
         name: "description",
         content:
           "Store Claude, Lovable and Base44 prompts per project with groups, versions, generated code notes and one-click copy.",
       },
-      { property: "og:title", content: "AI Workspace — BPO Nexus" },
+      { property: "og:title", content: "JARVIS Workspace — BPO Nexus" },
       { property: "og:description", content: "Grouped prompt library with version history and code notes." },
     ],
   }),
@@ -67,8 +67,8 @@ function AiWorkspacePage() {
 
   return (
     <div className="animate-fade-in">
-      <PageHeader
-        title="AI Workspace"
+            <PageHeader
+        title="JARVIS Workspace"
         description="Prompt library, versions and generated code notes for every engagement"
         actions={
           <Button

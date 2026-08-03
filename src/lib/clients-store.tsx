@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { clients as seedClients, type Client } from "@/data/demo";
 import { usePersistentState, uid } from "@/lib/persist";
+import { useSupabaseClients } from "@/lib/supabase/hooks/useSupabaseClients";
 
 export type ClientDraft = Omit<Client, "id">;
 
@@ -11,36 +12,37 @@ type Ctx = {
   update: (id: string, patch: Partial<Client>) => void;
   remove: (id: string) => void;
   isDuplicate: (email: string, username: string, ignoreId?: string) => boolean;
+  loading: boolean;
+  error: Error | null;
+  refresh: () => Promise<void>;
 };
 
 const ClientsContext = createContext<Ctx | null>(null);
 
 export function ClientsProvider({ children }: { children: ReactNode }) {
-  const [clients, setClients] = usePersistentState<Client[]>("clients", seedClients);
+  // Use Supabase hook for data management
+  const { clients, loading, error, createClient, updateClient, deleteClient, isDuplicate, refresh } = useSupabaseClients();
 
   const value = useMemo<Ctx>(() => {
-    const isDuplicate = (email: string, username: string, ignoreId?: string) =>
-      clients.some(
-        (c) =>
-          c.id !== ignoreId &&
-          (c.email.trim().toLowerCase() === email.trim().toLowerCase() ||
-            c.freelancerUsername.trim().toLowerCase() === username.trim().toLowerCase()),
-      );
-
     return {
       clients,
       get: (id) => clients.find((c) => c.id === id),
       isDuplicate,
       create: (draft) => {
-        const created: Client = { ...draft, id: uid("c") };
-        setClients((prev) => [created, ...prev]);
-        return created;
+        const created = createClient(draft);
+        return created as unknown as Client;
       },
-      update: (id, patch) =>
-        setClients((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c))),
-      remove: (id) => setClients((prev) => prev.filter((c) => c.id !== id)),
+      update: (id, patch) => {
+        updateClient(id, patch).catch(console.error);
+      },
+      remove: (id) => {
+        deleteClient(id).catch(console.error);
+      },
+      loading,
+      error,
+      refresh
     };
-  }, [clients, setClients]);
+  }, [clients, loading, error, createClient, updateClient, deleteClient, isDuplicate, refresh]);
 
   return <ClientsContext.Provider value={value}>{children}</ClientsContext.Provider>;
 }

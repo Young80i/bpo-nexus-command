@@ -102,13 +102,13 @@ function Dashboard() {
       <PageHeader
         title="Executive Dashboard"
         description="Wednesday, 29 July 2026 · Delivery health across 8 clients and 12 engagements"
-        actions={
+                actions={
           <>
             <Button variant="outline" size="sm">
               Export report
             </Button>
             <Button size="sm" className="gap-1.5">
-              <Zap className="h-4 w-4" /> AI Weekly Digest
+              <Zap className="h-4 w-4" /> JARVIS Weekly Digest
             </Button>
           </>
         }

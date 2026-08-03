@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { usePersistentState } from "@/lib/persist";
+import { useSupabaseProfile } from "@/lib/supabase/hooks/useSupabaseProfile";
 
 export type Profile = {
   displayName: string;
@@ -43,27 +44,36 @@ type Ctx = {
   profile: Profile;
   update: (patch: Partial<Profile>) => void;
   initials: string;
+  loading: boolean;
+  error: Error | null;
+  refresh: () => Promise<void>;
 };
 
 const ProfileContext = createContext<Ctx | null>(null);
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  const [profile, setProfile] = usePersistentState<Profile>("profile", defaultProfile);
+  // Use Supabase hook for data management
+  const { profile, loading, error, updateProfile, refresh } = useSupabaseProfile();
 
-  const value = useMemo<Ctx>(() => {
+    const value = useMemo<Ctx>(() => {
     const initials =
       profile.displayName
         .split(/\s+/)
         .filter(Boolean)
         .slice(0, 2)
-        .map((p) => p[0]?.toUpperCase() ?? "")
+        .map((p: string) => p[0]?.toUpperCase() ?? "")
         .join("") || "BN";
     return {
       profile,
       initials,
-      update: (patch) => setProfile((prev) => ({ ...prev, ...patch })),
+      update: (patch) => {
+        updateProfile(patch).catch(console.error);
+      },
+      loading,
+      error,
+      refresh
     };
-  }, [profile, setProfile]);
+  }, [profile, loading, error, updateProfile, refresh]);
 
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }
