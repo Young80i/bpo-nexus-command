@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Copy, Zap, GitBranch, Rocket, Workflow } from "lucide-react";
 import { MetricCard } from "@/components/ai/MetricCard";
 import { useExecutiveMetrics } from "@/lib/executive-metrics";
+import { ProtectedRoute } from "@/lib/auth/protected-route";
 
 function ExecutiveDashboard() {
   const metrics = useExecutiveMetrics();

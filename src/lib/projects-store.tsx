@@ -1,21 +1,9 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
-import { projects as seedProjects, type Project } from "@/data/demo";
-import { useSupabaseProjects } from "@/lib/supabase/hooks/useSupabaseProjects";
+import { toast } from "sonner";
 
-type Ctx = {
-  projects: Project[];
-  create: (p: Omit<Project, "id">) => void;
-  update: (id: string, patch: Partial<Project>) => void;
-  remove: (id: string) => void;
-  archive: (id: string) => void;
-  duplicate: (id: string) => void;
-  loading: boolean;
-  error: Error | null;
-  refresh: () => Promise<void>;
-};
+// ... existing imports ...
 
 const ProjectsContext = createContext<Ctx | null>(null);
-
 export function ProjectsProvider({ children }: { children: ReactNode }) {
   // Use Supabase hook for data management
   const { projects, loading, error, createProject, updateProject, deleteProject, archiveProject, duplicateProject, refresh } = useSupabaseProjects();
@@ -23,26 +11,56 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   const value = useMemo<Ctx>(
     () => ({
       projects,
-      create: (p) => {
-        createProject(p).catch(console.error);
+      create: async (p) => {
+        try {
+          const created = await createProject(p);
+          toast.success("Project created");
+          return created;
+        } catch (err) {
+          toast.error("Failed to create project: " + (err instanceof Error ? err.message : "Unknown error"));
+          throw err;
+        }
       },
-      update: (id, patch) => {
-        updateProject(id, patch).catch(console.error);
+      update: async (id, patch) => {
+        try {
+          await updateProject(id, patch);
+          toast.success("Project updated");
+        } catch (err) {
+          toast.error("Failed to update project: " + (err instanceof Error ? err.message : "Unknown error"));
+          throw err;
+        }
       },
-      remove: (id) => {
-        deleteProject(id).catch(console.error);
+      remove: async (id) => {
+        try {
+          await deleteProject(id);
+          toast.success("Project deleted");
+        } catch (err) {
+          toast.error("Failed to delete project: " + (err instanceof Error ? err.message : "Unknown error"));
+          throw err;
+        }
       },
-      archive: (id) => {
-        archiveProject(id).catch(console.error);
+      archive: async (id) => {
+        try {
+          await archiveProject(id);
+          toast.success("Project archived");
+        } catch (err) {
+          toast.error("Failed to archive project: " + (err instanceof Error ? err.message : "Unknown error"));
+          throw err;
+        }
       },
-      duplicate: (id) => {
-        duplicateProject(id).catch(console.error);
+      duplicate: async (id) => {
+        try {
+          await duplicateProject(id);
+          toast.success("Project duplicated");
+        } catch (err) {
+          toast.error("Failed to duplicate project: " + (err instanceof Error ? err.message : "Unknown error"));
+          throw err;
+        }
       },
       loading,
       error,
       refresh
-    }),
-    [projects, loading, error, createProject, updateProject, deleteProject, archiveProject, duplicateProject, refresh],
+    }), [projects, loading, error, createProject, updateProject, deleteProject, archiveProject, duplicateProject, refresh]
   );
 
   return <ProjectsContext.Provider value={value}>{children}</ProjectsContext.Provider>;
@@ -53,3 +71,4 @@ export function useProjects() {
   if (!ctx) throw new Error("useProjects must be used inside ProjectsProvider");
   return ctx;
 }
+

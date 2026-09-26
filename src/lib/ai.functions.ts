@@ -1,7 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider, CTO_MODEL } from "@/lib/ai-gateway.server";
+import {
+  createAIProvider,
+  createFallbackAIProvider,
+  CTO_MODEL,
+  CTO_FALLBACK_MODEL,
+} from "@/lib/ai-provider.server";
 
 const briefSchema = z.object({
   summary: z.string(),
@@ -13,8 +18,20 @@ const briefSchema = z.object({
   risks: z.array(z.string()),
   clientExpectations: z.array(z.string()),
   deliverables: z.array(z.string()),
-  milestones: z.array(z.object({ title: z.string(), outcome: z.string(), days: z.number() })),
-  tasks: z.array(z.object({ title: z.string(), milestone: z.string(), tool: z.string() })),
+  milestones: z.array(
+    z.object({
+      title: z.string(),
+      outcome: z.string(),
+      days: z.number(),
+    }),
+  ),
+  tasks: z.array(
+    z.object({
+      title: z.string(),
+      milestone: z.string(),
+      tool: z.string(),
+    }),
+  ),
 });
 
 export type BriefAnalysis = z.infer<typeof briefSchema>;
@@ -29,27 +46,126 @@ const conversationSchema = z.object({
 
 export type ConversationAnalysis = z.infer<typeof conversationSchema>;
 
-function gateway() {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("Missing LOVABLE_API_KEY");
-  return createLovableAiGatewayProvider(key, { structuredOutputs: true })(CTO_MODEL);
+/**
+ * Primary AI provider:
+ * NVIDIA Nemotron 3 Super through OpenRouter.
+ */
+function primaryModel() {
+  return createAIProvider().languageModel(CTO_MODEL);
+}
+
+/**
+ * Fallback AI provider:
+ * Gemini through Google's AI SDK.
+ */
+function fallbackModel() {
+  return createFallbackAIProvider().languageModel(CTO_FALLBACK_MODEL);
+}
+
+/**
+ * Runs the primary model first.
+ *
+ * If OpenRouter/NVIDIA fails, automatically retries the
+ * exact same request using the Gemini fallback model.
+ */
+async function generateWithFallback<T>({
+  schema,
+  prompt,
+}: {
+  schema: z.ZodType<T>;
+  prompt: string;
+}): Promise<T> {
+  try {
+    console.log(`[JARVIS] Primary model: ${CTO_MODEL}`);
+
+    const { output } = await generateText({
+      model: primaryModel(),
+      output: Output.object({ schema }),
+      prompt,
+    });
+
+    console.log(`[JARVIS] Primary model succeeded.`);
+
+    return output;
+  } catch (primaryError) {
+    const primaryMessage =
+      primaryError instanceof Error
+        ? primaryError.message
+        : "Unknown primary model error";
+
+    console.warn(
+      `[JARVIS] Primary model failed. Switching to fallback Gemini.`,
+      primaryMessage,
+    );
+
+    try {
+      console.log(`[JARVIS] Fallback model: ${CTO_FALLBACK_MODEL}`);
+
+      const { output } = await generateText({
+        model: fallbackModel(),
+        output: Output.object({ schema }),
+        prompt,
+      });
+
+      console.log(`[JARVIS] Fallback model succeeded.`);
+
+      return output;
+    } catch (fallbackError) {
+      const fallbackMessage =
+        fallbackError instanceof Error
+          ? fallbackError.message
+          : "Unknown fallback model error";
+
+      console.error(
+        `[JARVIS] Both primary and fallback models failed.`,
+        {
+          primaryError: primaryMessage,
+          fallbackError: fallbackMessage,
+        },
+      );
+
+      throw fallbackError;
+    }
+  }
 }
 
 export const analyseBrief = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({ text: z.string().min(20) }).parse(data))
+  .validator((data: unknown) =>
+    z.object({
+      text: z.string().min(20),
+    }).parse(data),
+  )
   .handler(async ({ data }): Promise<BriefAnalysis> => {
-    try {
-      const { output } = await generateText({
-        model: gateway(),
-        output: Output.object({ schema: briefSchema }),
-        providerOptions: { lovable: { reasoningEffort: "none" } },
-        prompt: `You are a senior software architect and delivery lead for a solo AI agency working on Freelancer.com.
-Analyse this project description and produce a delivery plan. Recommend only Lovable, Claude, GitHub Desktop, Visual Studio Code and Node.js as tools. Keep every list to at most 8 concise items, milestones to at most 6, tasks to at most 12. Difficulty must be one of Easy, Moderate, Hard, Expert.
+    const prompt = `You are a senior software architect and delivery lead for a solo AI agency working on Freelancer.com.
+
+Analyse this project description and produce a delivery plan.
+
+Recommend only these tools:
+- Lovable
+- Claude
+- GitHub Desktop
+- Visual Studio Code
+- Node.js
+
+Keep every list to at most 8 concise items.
+Milestones must be at most 6.
+Tasks must be at most 12.
+
+Difficulty must be exactly one of:
+- Easy
+- Moderate
+- Hard
+- Expert
 
 PROJECT DESCRIPTION:
-${data.text}`,
+
+${data.text}`;
+
+    try {
+      return await generateWithFallback({
+        schema: briefSchema,
+        prompt,
       });
-      return output;
     } catch (error) {
       if (NoObjectGeneratedError.isInstance(error) && error.text) {
         try {
@@ -58,25 +174,46 @@ ${data.text}`,
           /* fall through */
         }
       }
+
       throw error;
     }
   });
 
 export const analyseConversation = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({ text: z.string().min(20) }).parse(data))
+  .validator((data: unknown) =>
+    z.object({
+      text: z.string().min(20),
+    }).parse(data),
+  )
   .handler(async ({ data }): Promise<ConversationAnalysis> => {
-    try {
-      const { output } = await generateText({
-        model: gateway(),
-        output: Output.object({ schema: conversationSchema }),
-        providerOptions: { lovable: { reasoningEffort: "none" } },
-        prompt: `Analyse this client conversation from a Freelancer.com software project.
-Return a short summary, action items, outstanding questions and a ready-to-send reply written in a warm, professional, confident freelancer voice. Keep lists to at most 8 items and the reply under 150 words.
+    const prompt = `Analyse this client conversation from a Freelancer.com software project.
+
+Return:
+- A short summary
+- Action items
+- Outstanding questions
+- A ready-to-send reply
+- Overall sentiment
+
+Keep lists to at most 8 items.
+
+The suggested reply must:
+- Be warm
+- Be professional
+- Be confident
+- Sound like an experienced freelancer
+- Be ready to send directly to the client
+- Stay under 150 words
 
 CONVERSATION:
-${data.text}`,
+
+${data.text}`;
+
+    try {
+      return await generateWithFallback({
+        schema: conversationSchema,
+        prompt,
       });
-      return output;
     } catch (error) {
       if (NoObjectGeneratedError.isInstance(error) && error.text) {
         try {
@@ -85,6 +222,7 @@ ${data.text}`,
           /* fall through */
         }
       }
+
       throw error;
     }
   });

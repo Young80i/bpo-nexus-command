@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { normalizeEmail } from '@/lib/utils';
 import { supabaseServices } from '../services';
 import type { Client as SupabaseClient } from '../types';
 import { clients as seedClients } from '@/data/demo';
@@ -99,7 +100,7 @@ export function useSupabaseClients() {
     return clients.some(
       (c) =>
         c.id !== ignoreId &&
-        (c.email.trim().toLowerCase() === email.trim().toLowerCase() ||
+        (normalizeEmail(c.email) === normalizeEmail(email) ||
           c.freelancerUsername.trim().toLowerCase() === username.trim().toLowerCase()),
     );
   }, [clients]);

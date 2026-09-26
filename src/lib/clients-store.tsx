@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { clients as seedClients, type Client } from "@/data/demo";
 import { usePersistentState, uid } from "@/lib/persist";
 import { useSupabaseClients } from "@/lib/supabase/hooks/useSupabaseClients";
+import { toast } from "sonner";
 
 export type ClientDraft = Omit<Client, "id">;
 
@@ -28,15 +29,33 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       clients,
       get: (id) => clients.find((c) => c.id === id),
       isDuplicate,
-      create: (draft) => {
-        const created = createClient(draft);
+      create: async (draft) => {
+        try {
+          const created = await createClient(draft);
+          toast.success("Client created");
         return created as unknown as Client;
+        } catch (err) {
+          toast.error("Failed to create client: " + (err instanceof Error ? err.message : "Unknown error"));
+          throw err;
+        }
       },
-      update: (id, patch) => {
-        updateClient(id, patch).catch(console.error);
+      update: async (id, patch) => {
+        try {
+          await updateClient(id, patch);
+          toast.success("Client updated");
+        } catch (err) {
+          toast.error("Failed to update client: " + (err instanceof Error ? err.message : "Unknown error"));
+          throw err;
+        }
       },
-      remove: (id) => {
-        deleteClient(id).catch(console.error);
+      remove: async (id) => {
+        try {
+          await deleteClient(id);
+          toast.success("Client deleted");
+        } catch (err) {
+          toast.error("Failed to delete client: " + (err instanceof Error ? err.message : "Unknown error"));
+          throw err;
+        }
       },
       loading,
       error,
@@ -69,3 +88,4 @@ export const emptyClient: ClientDraft = {
   since: new Date().toISOString().slice(0, 10),
   status: "Prospect",
 };
+

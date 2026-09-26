@@ -19,11 +19,15 @@ import { Route as ExecutiveDashboardRouteImport } from './routes/executive-dashb
 import { Route as FilesRouteImport } from './routes/files'
 import { Route as GameDevRouteImport } from './routes/game-dev'
 import { Route as MilestonesRouteImport } from './routes/milestones'
-import { Route as ProjectsRouteImport } from './routes/projects'
-import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ProjectsPipelineRouteImport } from './routes/projects-pipeline'
 import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as WebsiteRouteImport } from './routes/website'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
+import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
+import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as ClientsIndexRouteImport } from './routes/clients.index'
 import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
 
@@ -77,14 +81,9 @@ const MilestonesRoute = MilestonesRouteImport.update({
   path: '/milestones',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsRoute = ProjectsRouteImport.update({
-  id: '/projects',
-  path: '/projects',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const ProjectsPipelineRoute = ProjectsPipelineRouteImport.update({
+  id: '/projects-pipeline',
+  path: '/projects-pipeline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TasksRoute = TasksRouteImport.update({
@@ -100,6 +99,31 @@ const WebsiteRoute = WebsiteRouteImport.update({
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/auth/forgot-password',
+  path: '/auth/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/auth/reset-password',
+  path: '/auth/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSignupRoute = AuthSignupRouteImport.update({
+  id: '/auth/signup',
+  path: '/auth/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientsIndexRoute = ClientsIndexRouteImport.update({
@@ -124,11 +148,15 @@ export interface FileRoutesByFullPath {
   '/files': typeof FilesRoute
   '/game-dev': typeof GameDevRoute
   '/milestones': typeof MilestonesRoute
-  '/projects': typeof ProjectsRoute
-  '/settings': typeof SettingsRoute
+  '/projects-pipeline': typeof ProjectsPipelineRoute
   '/tasks': typeof TasksRoute
   '/website': typeof WebsiteRoute
   '/api/chat': typeof ApiChatRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/signup': typeof AuthSignupRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/clients/': typeof ClientsIndexRoute
 }
@@ -143,11 +171,15 @@ export interface FileRoutesByTo {
   '/files': typeof FilesRoute
   '/game-dev': typeof GameDevRoute
   '/milestones': typeof MilestonesRoute
-  '/projects': typeof ProjectsRoute
-  '/settings': typeof SettingsRoute
+  '/projects-pipeline': typeof ProjectsPipelineRoute
   '/tasks': typeof TasksRoute
   '/website': typeof WebsiteRoute
   '/api/chat': typeof ApiChatRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/signup': typeof AuthSignupRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/clients': typeof ClientsIndexRoute
 }
@@ -163,11 +195,15 @@ export interface FileRoutesById {
   '/files': typeof FilesRoute
   '/game-dev': typeof GameDevRoute
   '/milestones': typeof MilestonesRoute
-  '/projects': typeof ProjectsRoute
-  '/settings': typeof SettingsRoute
+  '/projects-pipeline': typeof ProjectsPipelineRoute
   '/tasks': typeof TasksRoute
   '/website': typeof WebsiteRoute
   '/api/chat': typeof ApiChatRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/signup': typeof AuthSignupRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
   '/clients/': typeof ClientsIndexRoute
 }
@@ -184,11 +220,15 @@ export interface FileRouteTypes {
     | '/files'
     | '/game-dev'
     | '/milestones'
-    | '/projects'
-    | '/settings'
+    | '/projects-pipeline'
     | '/tasks'
     | '/website'
     | '/api/chat'
+    | '/auth/callback'
+    | '/auth/forgot-password'
+    | '/auth/login'
+    | '/auth/reset-password'
+    | '/auth/signup'
     | '/clients/$clientId'
     | '/clients/'
   fileRoutesByTo: FileRoutesByTo
@@ -203,11 +243,15 @@ export interface FileRouteTypes {
     | '/files'
     | '/game-dev'
     | '/milestones'
-    | '/projects'
-    | '/settings'
+    | '/projects-pipeline'
     | '/tasks'
     | '/website'
     | '/api/chat'
+    | '/auth/callback'
+    | '/auth/forgot-password'
+    | '/auth/login'
+    | '/auth/reset-password'
+    | '/auth/signup'
     | '/clients/$clientId'
     | '/clients'
   id:
@@ -222,11 +266,15 @@ export interface FileRouteTypes {
     | '/files'
     | '/game-dev'
     | '/milestones'
-    | '/projects'
-    | '/settings'
+    | '/projects-pipeline'
     | '/tasks'
     | '/website'
     | '/api/chat'
+    | '/auth/callback'
+    | '/auth/forgot-password'
+    | '/auth/login'
+    | '/auth/reset-password'
+    | '/auth/signup'
     | '/clients/$clientId'
     | '/clients/'
   fileRoutesById: FileRoutesById
@@ -242,11 +290,15 @@ export interface RootRouteChildren {
   FilesRoute: typeof FilesRoute
   GameDevRoute: typeof GameDevRoute
   MilestonesRoute: typeof MilestonesRoute
-  ProjectsRoute: typeof ProjectsRoute
-  SettingsRoute: typeof SettingsRoute
+  ProjectsPipelineRoute: typeof ProjectsPipelineRoute
   TasksRoute: typeof TasksRoute
   WebsiteRoute: typeof WebsiteRoute
   ApiChatRoute: typeof ApiChatRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
+  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+  AuthSignupRoute: typeof AuthSignupRoute
   ClientsClientIdRoute: typeof ClientsClientIdRoute
   ClientsIndexRoute: typeof ClientsIndexRoute
 }
@@ -323,18 +375,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MilestonesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects': {
-      id: '/projects'
-      path: '/projects'
-      fullPath: '/projects'
-      preLoaderRoute: typeof ProjectsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
+    '/projects-pipeline': {
+      id: '/projects-pipeline'
+      path: '/projects-pipeline'
+      fullPath: '/projects-pipeline'
+      preLoaderRoute: typeof ProjectsPipelineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tasks': {
@@ -356,6 +401,41 @@ declare module '@tanstack/react-router' {
       path: '/api/chat'
       fullPath: '/api/chat'
       preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/forgot-password': {
+      id: '/auth/forgot-password'
+      path: '/auth/forgot-password'
+      fullPath: '/auth/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/auth/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/signup': {
+      id: '/auth/signup'
+      path: '/auth/signup'
+      fullPath: '/auth/signup'
+      preLoaderRoute: typeof AuthSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clients/': {
@@ -386,11 +466,15 @@ const rootRouteChildren: RootRouteChildren = {
   FilesRoute: FilesRoute,
   GameDevRoute: GameDevRoute,
   MilestonesRoute: MilestonesRoute,
-  ProjectsRoute: ProjectsRoute,
-  SettingsRoute: SettingsRoute,
+  ProjectsPipelineRoute: ProjectsPipelineRoute,
   TasksRoute: TasksRoute,
   WebsiteRoute: WebsiteRoute,
   ApiChatRoute: ApiChatRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
+  AuthForgotPasswordRoute: AuthForgotPasswordRoute,
+  AuthLoginRoute: AuthLoginRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
+  AuthSignupRoute: AuthSignupRoute,
   ClientsClientIdRoute: ClientsClientIdRoute,
   ClientsIndexRoute: ClientsIndexRoute,
 }

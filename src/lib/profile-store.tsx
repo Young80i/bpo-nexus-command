@@ -1,5 +1,6 @@
+// Removed unused usePersistentState import
+// Profile store already fully migrated to Supabase via useSupabaseProfile
 import { createContext, useContext, useMemo, type ReactNode } from "react";
-import { usePersistentState } from "@/lib/persist";
 import { useSupabaseProfile } from "@/lib/supabase/hooks/useSupabaseProfile";
 
 export type Profile = {
@@ -83,3 +84,4 @@ export function useProfile() {
   if (!ctx) throw new Error("useProfile must be used inside ProfileProvider");
   return ctx;
 }
+
