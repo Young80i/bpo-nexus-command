@@ -1,11 +1,86 @@
-// ... existing imports ...
-import { toast } from "sonner";
+import { useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import {
+  Archive,
+  Columns3,
+  Copy,
+  LayoutGrid,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Search,
+  Table2,
+  Trash2,
+} from "lucide-react";
+import { PageHeader } from "@/components/layout/app-shell";
+import { PriorityBadge, ProgressBar, StatusBadge } from "@/components/badges";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useProjects } from "@/lib/projects-store";
+import {
+  clients,
+  formatMoney,
+  priorities,
+  statusOrder,
+  type Priority,
+  type Project,
+  type ProjectStatus,
+} from "@/data/demo";
+import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/projects")({
+  head: () => ({
+    meta: [
+      { title: "Projects — Kanban, Table & Cards | BPO Nexus" },
+      {
+        name: "description",
+        content:
+          "Plan and track outsourcing projects across Kanban, table and card views with budgets, priorities, stacks and deadlines.",
+      },
+      { property: "og:title", content: "Projects — BPO Nexus" },
+      { property: "og:description", content: "Kanban, table and card views for every software outsourcing engagement." },
+    ],
+  }),
+  component: ProjectsPage,
+});
 
 const views = [
   { key: "kanban", label: "Kanban", icon: Columns3 },
   { key: "table", label: "Table", icon: Table2 },
   { key: "cards", label: "Cards", icon: LayoutGrid },
 ] as const;
+
+const emptyDraft: Omit<Project, "id"> = {
+  name: "",
+  clientId: clients[0].id,
+  description: "",
+  budget: 10000,
+  currency: "USD",
+  priority: "Medium",
+  status: "Discovery",
+  startDate: "2026-08-01",
+  dueDate: "2026-11-01",
+  estimatedHours: 200,
+  actualHours: 0,
+  stack: [],
+  repository: "",
+  aiTool: "Lovable",
+  notes: "",
+  progress: 0,
+  archived: false,
+};
 
 function clientName(id: string) {
   return clients.find((c) => c.id === id)?.company ?? "Unassigned";
@@ -52,7 +127,7 @@ function ProjectCard({ project, onEdit }: { project: Project; onEdit: (p: Projec
           <h3 className="truncate text-sm font-semibold">{project.name}</h3>
           <p className="truncate text-xs text-muted-foreground">{clientName(project.clientId)}</p>
         </div>
-        <RowMenu project={project} onEdit={openEdit} />
+        <RowMenu project={project} onEdit={onEdit} />
       </div>
       <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{project.description}</p>
       <div className="mt-3 flex flex-wrap gap-1.5">
@@ -116,14 +191,10 @@ function ProjectsPage() {
     const { id: _id, ...rest } = p;
     setDraft(rest);
   };
-  const save = async () => {
+  const save = () => {
     if (!draft) return;
-    try {
-      if (editing) await update(editing.id, draft);
-      else await create(draft);
-    } catch (err) {
-      // Error is already shown via toast in store
-    }
+    if (editing) update(editing.id, draft);
+    else create(draft);
     setDraft(null);
     setEditing(null);
   };
