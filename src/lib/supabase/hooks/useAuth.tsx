@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, createContext, useContext, useMemo } from 'react';
 import { supabase } from '../client';
 import { normalizeEmail } from '@/lib/utils';
-import type { User } from '../types';
+import type { User } from '@supabase/supabase-js';
 
 interface UseAuthReturn {
   user: User | null;
@@ -12,6 +12,7 @@ interface UseAuthReturn {
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   updatePassword: (password: string) => Promise<{ error: Error | null }>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  signOut: () => Promise<void>;
 }
 
 interface AuthContextType extends UseAuthReturn {}
@@ -200,6 +201,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  }, []);
+
   const authContextValue: AuthContextType = useMemo(() => ({
     user,
     loading,
@@ -209,6 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGoogle,
     updatePassword,
     resetPassword,
+    signOut,
   }), [user, loading, error]);
 
   return (
