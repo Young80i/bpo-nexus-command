@@ -13,6 +13,7 @@ import { Route as WebsiteRouteImport } from './routes/website'
 import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProjectsPipelineRouteImport } from './routes/projects-pipeline'
+import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as MilestonesRouteImport } from './routes/milestones'
 import { Route as GameDevRouteImport } from './routes/game-dev'
 import { Route as FilesRouteImport } from './routes/files'
@@ -50,6 +51,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ProjectsPipelineRoute = ProjectsPipelineRouteImport.update({
   id: '/projects-pipeline',
   path: '/projects-pipeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MilestonesRoute = MilestonesRouteImport.update({
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/files': typeof FilesRoute
   '/game-dev': typeof GameDevRoute
   '/milestones': typeof MilestonesRoute
+  '/projects': typeof ProjectsRoute
   '/projects-pipeline': typeof ProjectsPipelineRoute
   '/settings': typeof SettingsRoute
   '/tasks': typeof TasksRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByTo {
   '/files': typeof FilesRoute
   '/game-dev': typeof GameDevRoute
   '/milestones': typeof MilestonesRoute
+  '/projects': typeof ProjectsRoute
   '/projects-pipeline': typeof ProjectsPipelineRoute
   '/settings': typeof SettingsRoute
   '/tasks': typeof TasksRoute
@@ -203,6 +211,7 @@ export interface FileRoutesById {
   '/files': typeof FilesRoute
   '/game-dev': typeof GameDevRoute
   '/milestones': typeof MilestonesRoute
+  '/projects': typeof ProjectsRoute
   '/projects-pipeline': typeof ProjectsPipelineRoute
   '/settings': typeof SettingsRoute
   '/tasks': typeof TasksRoute
@@ -229,6 +238,7 @@ export interface FileRouteTypes {
     | '/files'
     | '/game-dev'
     | '/milestones'
+    | '/projects'
     | '/projects-pipeline'
     | '/settings'
     | '/tasks'
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/files'
     | '/game-dev'
     | '/milestones'
+    | '/projects'
     | '/projects-pipeline'
     | '/settings'
     | '/tasks'
@@ -277,6 +288,7 @@ export interface FileRouteTypes {
     | '/files'
     | '/game-dev'
     | '/milestones'
+    | '/projects'
     | '/projects-pipeline'
     | '/settings'
     | '/tasks'
@@ -302,6 +314,7 @@ export interface RootRouteChildren {
   FilesRoute: typeof FilesRoute
   GameDevRoute: typeof GameDevRoute
   MilestonesRoute: typeof MilestonesRoute
+  ProjectsRoute: typeof ProjectsRoute
   ProjectsPipelineRoute: typeof ProjectsPipelineRoute
   SettingsRoute: typeof SettingsRoute
   TasksRoute: typeof TasksRoute
@@ -344,6 +357,13 @@ declare module '@tanstack/react-router' {
       path: '/projects-pipeline'
       fullPath: '/projects-pipeline'
       preLoaderRoute: typeof ProjectsPipelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/milestones': {
@@ -486,6 +506,7 @@ const rootRouteChildren: RootRouteChildren = {
   FilesRoute: FilesRoute,
   GameDevRoute: GameDevRoute,
   MilestonesRoute: MilestonesRoute,
+  ProjectsRoute: ProjectsRoute,
   ProjectsPipelineRoute: ProjectsPipelineRoute,
   SettingsRoute: SettingsRoute,
   TasksRoute: TasksRoute,

@@ -39,6 +39,7 @@ import {
   type ProjectStatus,
 } from "@/data/demo";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/projects")({
   head: () => ({
@@ -191,10 +192,18 @@ function ProjectsPage() {
     const { id: _id, ...rest } = p;
     setDraft(rest);
   };
-  const save = () => {
+  const save = async () => {
     if (!draft) return;
-    if (editing) update(editing.id, draft);
-    else create(draft);
+    if (!draft.name.trim()) return toast.error("Project name is required");
+    if (!draft.clientId) return toast.error("Select a client");
+    if (!draft.dueDate) return toast.error("Due date is required");
+    if (draft.budget < 0) return toast.error("Budget cannot be negative");
+    try {
+      if (editing) await update(editing.id, draft);
+      else await create(draft);
+    } catch {
+      return; // store already shows the error toast
+    }
     setDraft(null);
     setEditing(null);
   };

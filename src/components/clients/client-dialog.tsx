@@ -21,7 +21,7 @@ export function ClientDialog({
   const set = <K extends keyof ClientDraft>(key: K, value: ClientDraft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!draft.name.trim()) return toast.error("Contact name is required");
     if (!draft.company.trim()) return toast.error("Company is required");
@@ -30,12 +30,11 @@ export function ClientDialog({
       return toast.error("A client with that email or Freelancer username already exists");
 
     if (client) {
-      update(client.id, draft);
-      toast.success("Client updated");
+      try { await update(client.id, draft); } catch { return; }
       onSaved?.({ ...client, ...draft });
     } else {
-      const created = create(draft);
-      toast.success("Client created");
+      let created: Client;
+      try { created = await create(draft); } catch { return; }
       onSaved?.(created);
     }
     onClose();

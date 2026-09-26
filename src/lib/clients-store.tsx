@@ -9,9 +9,9 @@ export type ClientDraft = Omit<Client, "id">;
 type Ctx = {
   clients: Client[];
   get: (id: string) => Client | undefined;
-  create: (c: ClientDraft) => Client;
-  update: (id: string, patch: Partial<Client>) => void;
-  remove: (id: string) => void;
+  create: (c: ClientDraft) => Promise<Client>;
+  update: (id: string, patch: Partial<Client>) => Promise<void>;
+  remove: (id: string) => Promise<void>;
   isDuplicate: (email: string, username: string, ignoreId?: string) => boolean;
   loading: boolean;
   error: Error | null;
