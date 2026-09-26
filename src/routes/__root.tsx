@@ -21,6 +21,7 @@ import { AppShell } from "../components/layout/app-shell";
 import { ClientsProvider } from "../lib/clients-store";
 import { FilesProvider } from "../lib/files-store";
 import { ProfileProvider } from "../lib/profile-store";
+import { AuthProvider } from "../lib/supabase/hooks/useAuth";
 
 function NotFoundComponent() {
   return (
@@ -128,6 +129,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
+        <AuthProvider>
         <ProfileProvider>
         <ClientsProvider>
         <FilesProvider>
@@ -146,6 +148,7 @@ function RootComponent() {
         </FilesProvider>
         </ClientsProvider>
         </ProfileProvider>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
