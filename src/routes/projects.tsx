@@ -369,5 +369,80 @@ function ProjectsPage() {
                   onChange={(e) => setDraft({ ...draft, startDate: e.target.value })}
                 />
               </Field>
+              <Field label="Due date">
+                <input
+                  type="date"
+                  className="field"
+                  value={draft.dueDate}
+                  onChange={(e) => setDraft({ ...draft, dueDate: e.target.value })}
+                />
+              </Field>
+              <Field label="Estimated hours">
+                <input
+                  type="number"
+                  className="field"
+                  value={draft.estimatedHours}
+                  onChange={(e) => setDraft({ ...draft, estimatedHours: Number(e.target.value) })}
+                />
+              </Field>
+              <Field label="Actual hours">
+                <input
+                  type="number"
+                  className="field"
+                  value={draft.actualHours}
+                  onChange={(e) => setDraft({ ...draft, actualHours: Number(e.target.value) })}
+                />
+              </Field>
+              <Field label="Technology stack (comma separated)" className="sm:col-span-2">
+                <input
+                  className="field"
+                  value={draft.stack.join(", ")}
+                  onChange={(e) =>
+                    setDraft({ ...draft, stack: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })
+                  }
+                />
+              </Field>
+              <Field label="Repository" className="sm:col-span-2">
+                <input
+                  className="field"
+                  value={draft.repository}
+                  onChange={(e) => setDraft({ ...draft, repository: e.target.value })}
+                />
+              </Field>
+              <Field label="Project notes" className="sm:col-span-2">
+                <textarea
+                  className="field min-h-20 py-2"
+                  value={draft.notes}
+                  onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
+                />
+              </Field>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDraft(null)}>
+              Cancel
+            </Button>
+            <Button onClick={save}>{editing ? "Save changes" : "Create project"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
 
-
+function Field({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <label className={cn("block", className)}>
+      <span className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</span>
+      {children}
+    </label>
+  );
+}

@@ -1,5 +1,2 @@
-// Authentication index file for easy imports
-import { AuthProvider } from './useAuth';
-import { ProtectedRoute } from './protected-route';
-
-export { AuthProvider, ProtectedRoute } from './useAuth';
+export { AuthProvider, useAuth } from '@/lib/supabase/hooks/useAuth';
+export { ProtectedRoute } from './protected-route';
