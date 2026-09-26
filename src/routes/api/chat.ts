@@ -30,7 +30,6 @@ return new Response("Messages are required", { status: 400 });
           model: provider.languageModel(CTO_MODEL),
           system,
           messages: await convertToModelMessages(body.messages as UIMessage[]),
-          providerOptions: { reasoningEffort: "none" },
         });
 
         return result.toUIMessageStreamResponse({

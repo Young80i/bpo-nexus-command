@@ -1,7 +1,20 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { toast } from "sonner";
 
-// ... existing imports ...
+import type { Project } from "@/data/demo";
+import { useSupabaseProjects } from "@/lib/supabase/hooks/useSupabaseProjects";
+
+type Ctx = {
+  projects: Project[];
+  create: (p: Omit<Project, "id">) => Promise<unknown>;
+  update: (id: string, patch: Partial<Project>) => Promise<void>;
+  remove: (id: string) => Promise<void>;
+  archive: (id: string) => Promise<void>;
+  duplicate: (id: string) => Promise<void>;
+  loading: boolean;
+  error: Error | null;
+  refresh: () => Promise<void>;
+};
 
 const ProjectsContext = createContext<Ctx | null>(null);
 export function ProjectsProvider({ children }: { children: ReactNode }) {

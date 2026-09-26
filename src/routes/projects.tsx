@@ -1,11 +1,87 @@
-// ... existing imports ...
+import { useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import {
+  Archive,
+  Columns3,
+  Copy,
+  LayoutGrid,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Search,
+  Table2,
+  Trash2,
+} from "lucide-react";
+import { PageHeader } from "@/components/layout/app-shell";
+import { PriorityBadge, ProgressBar, StatusBadge } from "@/components/badges";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useProjects } from "@/lib/projects-store";
+import {
+  clients,
+  formatMoney,
+  priorities,
+  statusOrder,
+  type Priority,
+  type Project,
+  type ProjectStatus,
+} from "@/data/demo";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+export const Route = createFileRoute("/projects")({
+  head: () => ({
+    meta: [
+      { title: "Projects — Kanban, Table & Cards | BPO Nexus" },
+      {
+        name: "description",
+        content:
+          "Plan and track outsourcing projects across Kanban, table and card views with budgets, priorities, stacks and deadlines.",
+      },
+      { property: "og:title", content: "Projects — BPO Nexus" },
+      { property: "og:description", content: "Kanban, table and card views for every software outsourcing engagement." },
+    ],
+  }),
+  component: ProjectsPage,
+});
 
 const views = [
   { key: "kanban", label: "Kanban", icon: Columns3 },
   { key: "table", label: "Table", icon: Table2 },
   { key: "cards", label: "Cards", icon: LayoutGrid },
 ] as const;
+
+const emptyDraft: Omit<Project, "id"> = {
+  name: "",
+  clientId: clients[0].id,
+  description: "",
+  budget: 10000,
+  currency: "USD",
+  priority: "Medium",
+  status: "Discovery",
+  startDate: "2026-08-01",
+  dueDate: "2026-11-01",
+  estimatedHours: 200,
+  actualHours: 0,
+  stack: [],
+  repository: "",
+  aiTool: "Lovable",
+  notes: "",
+  progress: 0,
+  archived: false,
+};
 
 function clientName(id: string) {
   return clients.find((c) => c.id === id)?.company ?? "Unassigned";
@@ -52,7 +128,7 @@ function ProjectCard({ project, onEdit }: { project: Project; onEdit: (p: Projec
           <h3 className="truncate text-sm font-semibold">{project.name}</h3>
           <p className="truncate text-xs text-muted-foreground">{clientName(project.clientId)}</p>
         </div>
-        <RowMenu project={project} onEdit={openEdit} />
+        <RowMenu project={project} onEdit={onEdit} />
       </div>
       <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{project.description}</p>
       <div className="mt-3 flex flex-wrap gap-1.5">
@@ -118,11 +194,15 @@ function ProjectsPage() {
   };
   const save = async () => {
     if (!draft) return;
+    if (!draft.name.trim()) return toast.error("Project name is required");
+    if (!draft.clientId) return toast.error("Select a client");
+    if (!draft.dueDate) return toast.error("Due date is required");
+    if (draft.budget < 0) return toast.error("Budget cannot be negative");
     try {
       if (editing) await update(editing.id, draft);
       else await create(draft);
-    } catch (err) {
-      // Error is already shown via toast in store
+    } catch {
+      return; // store already shows the error toast
     }
     setDraft(null);
     setEditing(null);
@@ -369,5 +449,80 @@ function ProjectsPage() {
                   onChange={(e) => setDraft({ ...draft, startDate: e.target.value })}
                 />
               </Field>
+              <Field label="Due date">
+                <input
+                  type="date"
+                  className="field"
+                  value={draft.dueDate}
+                  onChange={(e) => setDraft({ ...draft, dueDate: e.target.value })}
+                />
+              </Field>
+              <Field label="Estimated hours">
+                <input
+                  type="number"
+                  className="field"
+                  value={draft.estimatedHours}
+                  onChange={(e) => setDraft({ ...draft, estimatedHours: Number(e.target.value) })}
+                />
+              </Field>
+              <Field label="Actual hours">
+                <input
+                  type="number"
+                  className="field"
+                  value={draft.actualHours}
+                  onChange={(e) => setDraft({ ...draft, actualHours: Number(e.target.value) })}
+                />
+              </Field>
+              <Field label="Technology stack (comma separated)" className="sm:col-span-2">
+                <input
+                  className="field"
+                  value={draft.stack.join(", ")}
+                  onChange={(e) =>
+                    setDraft({ ...draft, stack: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })
+                  }
+                />
+              </Field>
+              <Field label="Repository" className="sm:col-span-2">
+                <input
+                  className="field"
+                  value={draft.repository}
+                  onChange={(e) => setDraft({ ...draft, repository: e.target.value })}
+                />
+              </Field>
+              <Field label="Project notes" className="sm:col-span-2">
+                <textarea
+                  className="field min-h-20 py-2"
+                  value={draft.notes}
+                  onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
+                />
+              </Field>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDraft(null)}>
+              Cancel
+            </Button>
+            <Button onClick={save}>{editing ? "Save changes" : "Create project"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
 
-
+function Field({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <label className={cn("block", className)}>
+      <span className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</span>
+      {children}
+    </label>
+  );
+}

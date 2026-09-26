@@ -191,7 +191,6 @@ export type GitHubRelease = {
   assets_url: string;
   upload_url: string;
   html_url: string;
-  id: number;
   tag_name: string;
   target_commitish: string;
   name: string | null;
