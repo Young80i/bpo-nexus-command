@@ -14,7 +14,164 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_state: {
+        Row: {
+          key: string
+          owner_id: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          owner_id?: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          key?: string
+          owner_id?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          company: string
+          country: string
+          country_code: string
+          created_at: string
+          email: string
+          freelancer_username: string
+          id: string
+          name: string
+          notes: string
+          owner_id: string
+          phone: string
+          rating: number
+          status: string
+          total_projects: number
+          total_revenue: number
+          updated_at: string
+        }
+        Insert: {
+          company?: string
+          country?: string
+          country_code?: string
+          created_at?: string
+          email?: string
+          freelancer_username?: string
+          id?: string
+          name: string
+          notes?: string
+          owner_id?: string
+          phone?: string
+          rating?: number
+          status?: string
+          total_projects?: number
+          total_revenue?: number
+          updated_at?: string
+        }
+        Update: {
+          company?: string
+          country?: string
+          country_code?: string
+          created_at?: string
+          email?: string
+          freelancer_username?: string
+          id?: string
+          name?: string
+          notes?: string
+          owner_id?: string
+          phone?: string
+          rating?: number
+          status?: string
+          total_projects?: number
+          total_revenue?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          actual_hours: number
+          ai_tool: string
+          archived: boolean
+          budget: number
+          client_id: string | null
+          created_at: string
+          currency: string
+          description: string
+          due_date: string
+          estimated_hours: number
+          id: string
+          name: string
+          notes: string
+          owner_id: string
+          priority: string
+          progress: number
+          repository: string
+          stack: string[]
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          actual_hours?: number
+          ai_tool?: string
+          archived?: boolean
+          budget?: number
+          client_id?: string | null
+          created_at?: string
+          currency?: string
+          description?: string
+          due_date?: string
+          estimated_hours?: number
+          id?: string
+          name: string
+          notes?: string
+          owner_id?: string
+          priority?: string
+          progress?: number
+          repository?: string
+          stack?: string[]
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          actual_hours?: number
+          ai_tool?: string
+          archived?: boolean
+          budget?: number
+          client_id?: string | null
+          created_at?: string
+          currency?: string
+          description?: string
+          due_date?: string
+          estimated_hours?: number
+          id?: string
+          name?: string
+          notes?: string
+          owner_id?: string
+          priority?: string
+          progress?: number
+          repository?: string
+          stack?: string[]
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
