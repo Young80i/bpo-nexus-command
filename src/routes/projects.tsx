@@ -66,8 +66,8 @@ const views = [
 
 
 
-function clientName(id: string) {
-  return clients.find((c) => c.id === id)?.company ?? "Unassigned";
+function clientName(id: string, list: { id: string; company: string }[]) {
+  return list.find((c) => c.id === id)?.company ?? "Unassigned";
 }
 
 function RowMenu({
@@ -104,12 +104,13 @@ function RowMenu({
 }
 
 function ProjectCard({ project, onEdit }: { project: Project; onEdit: (p: Project) => void }) {
+  const { clients } = useClients();
   return (
     <article className="lift rounded-xl border border-border bg-surface p-4">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold">{project.name}</h3>
-          <p className="truncate text-xs text-muted-foreground">{clientName(project.clientId)}</p>
+          <p className="truncate text-xs text-muted-foreground">{clientName(project.clientId, clients)}</p>
         </div>
         <RowMenu project={project} onEdit={onEdit} />
       </div>
@@ -162,7 +163,7 @@ const { clients } = useClients();
         (!q ||
           p.name.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q) ||
-          clientName(p.clientId).toLowerCase().includes(q) ||
+          clientName(p.clientId, clients).toLowerCase().includes(q) ||
           p.stack.join(" ").toLowerCase().includes(q)),
     );
   }, [projects, query, status, priority, showArchived]);
@@ -337,7 +338,7 @@ const openCreate = () => {
                     <p className="truncate font-medium">{p.name}</p>
                     <p className="truncate text-xs text-muted-foreground">{p.aiTool} · {p.repository}</p>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{clientName(p.clientId)}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{clientName(p.clientId, clients)}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={p.status} />
                   </td>
