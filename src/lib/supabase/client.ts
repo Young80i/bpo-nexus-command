@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 
@@ -11,12 +11,12 @@ if (!isSupabaseConfigured) {
   )
 }
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.'
-  )
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Use a harmless placeholder when not configured so the app still loads.
+// Callers should check `isSupabaseConfigured` before relying on cloud data.
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-anon-key',
+  { auth: { persistSession: isSupabaseConfigured, autoRefreshToken: isSupabaseConfigured } }
+)
 
 export type SupabaseClient = typeof supabase
