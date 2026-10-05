@@ -102,17 +102,27 @@ export const projectRepository = {
     return data
   },
 
-  create: async (project: Omit<Project, 'id' | 'created_at' | 'updated_at'>) => {
+   create: async (project: Omit<Project, 'id' | 'created_at' | 'updated_at'>) => {
     const { data, error } = await supabase
       .from('projects')
       .insert(project)
       .select()
       .single()
-    
-    if (error) throw error
+
+    if (error) {
+      console.error('PROJECT INSERT FAILED:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      })
+      throw error
+    }
+
+    console.log('PROJECT INSERT SUCCESS:', data)
     return data
   },
-
+  
   update: async (id: string, project: Partial<Omit<Project, 'id' | 'created_at' | 'updated_at'>>) => {
     const { data, error } = await supabase
       .from('projects')

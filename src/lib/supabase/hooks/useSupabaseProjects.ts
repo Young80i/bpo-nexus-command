@@ -44,9 +44,10 @@ export function useSupabaseProjects() {
       setProjects(prev => [appProject, ...prev]);
       return appProject;
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to create project'));
-      throw err;
-    }
+  console.error('CREATE PROJECT FAILED:', err);
+  setError(err instanceof Error ? err : new Error('Failed to create project'));
+  throw err;
+}
   }, []);
 
   // Update an existing project

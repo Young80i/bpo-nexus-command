@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.2",
+    "@ai-sdk/openai-compatible": "^3.0.57",
     "@ai-sdk/react": "^4.0.45",
     "@hookform/resolvers": "^5.2.2",
     "@octokit/rest": "^22.0.1",

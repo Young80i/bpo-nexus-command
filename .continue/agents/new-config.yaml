@@ -1,10 +1,10 @@
-name: Local Config
+name: BPO Nexus
 version: 1.0.0
 schema: v1
 
 models:
-  - name: NVIDIA Nemotron 3 Super (Free)
+  - name: Poolside Laguna XS 2.1 Free
     provider: openrouter
-    model: nvidia/nemotron-3-super-120b-a12b:free
+    model: poolside/laguna-xs-2.1:free
     apiBase: https://openrouter.ai/api/v1
-    apiKey: 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
+    apiKey: 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

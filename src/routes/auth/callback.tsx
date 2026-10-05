@@ -8,27 +8,21 @@ export const Route = createFileRoute('/auth/callback')({
 });
 
 function AuthCallback() {
-  const { loading } = useAuth();
+  // Wait for auth state to load, then redirect based on user
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // The auth state is handled by the AuthProvider
-    // Redirect to home after a short delay to ensure state is updated
-    const timer = setTimeout(() => {
-      navigate({ to: '/' });
-    }, 1000);
+    if (loading) return; // Do nothing while loading
 
-    return () => clearTimeout(timer);
-  }, [navigate]);
+    if (user) {
+      // User exists, navigate to home
+      navigate({ to: "/" });
+    } else {
+      // No user, navigate to login
+      navigate({ to: "/auth/login" });
+    }
+  }, [user, loading, navigate]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">
-          {loading ? 'Authenticating...' : 'Redirecting...'}
-        </p>
-      </div>
-    </div>
-  );
+  return null; // No UI needed for callback
 }

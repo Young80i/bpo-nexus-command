@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { useProjects } from "@/lib/projects-store";
 import {
-  clients,
+
   formatMoney,
   priorities,
   statusOrder,
@@ -38,6 +38,7 @@ import {
   type Project,
   type ProjectStatus,
 } from "@/data/demo";
+import { useClients } from "@/lib/clients-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -63,25 +64,7 @@ const views = [
   { key: "cards", label: "Cards", icon: LayoutGrid },
 ] as const;
 
-const emptyDraft: Omit<Project, "id"> = {
-  name: "",
-  clientId: clients[0].id,
-  description: "",
-  budget: 10000,
-  currency: "USD",
-  priority: "Medium",
-  status: "Discovery",
-  startDate: "2026-08-01",
-  dueDate: "2026-11-01",
-  estimatedHours: 200,
-  actualHours: 0,
-  stack: [],
-  repository: "",
-  aiTool: "Lovable",
-  notes: "",
-  progress: 0,
-  archived: false,
-};
+
 
 function clientName(id: string) {
   return clients.find((c) => c.id === id)?.company ?? "Unassigned";
@@ -159,7 +142,8 @@ function ProjectCard({ project, onEdit }: { project: Project; onEdit: (p: Projec
 }
 
 function ProjectsPage() {
-  const { projects, create, update } = useProjects();
+ const { projects, create, update } = useProjects();
+const { clients } = useClients();
   const [view, setView] = useState<(typeof views)[number]["key"]>("kanban");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<string>("All");
@@ -183,10 +167,35 @@ function ProjectsPage() {
     );
   }, [projects, query, status, priority, showArchived]);
 
-  const openCreate = () => {
-    setEditing(null);
-    setDraft({ ...emptyDraft });
-  };
+const openCreate = () => {
+  setEditing(null);
+
+  if (clients.length === 0) {
+    toast.error("Create a client before creating a project");
+    return;
+  }
+
+  setDraft({
+    name: "",
+    clientId: clients[0].id,
+    description: "",
+    budget: 10000,
+    currency: "USD",
+    priority: "Medium",
+    status: "Discovery",
+    startDate: "2026-08-01",
+    dueDate: "2026-11-01",
+    estimatedHours: 200,
+    actualHours: 0,
+    stack: [],
+    repository: "",
+    aiTool: "Lovable",
+    notes: "",
+    progress: 0,
+    archived: false,
+  });
+};
+
   const openEdit = (p: Project) => {
     setEditing(p);
     const { id: _id, ...rest } = p;

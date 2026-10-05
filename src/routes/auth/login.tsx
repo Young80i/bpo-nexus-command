@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/supabase/hooks/useAuth';
-import { Github, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import { isValidEmail, normalizeEmail } from '@/lib/utils';
 
@@ -76,7 +76,7 @@ function Login() {
             onClick={handleGoogleLogin}
             disabled={loading}
           >
-            <Github className="mr-2 h-4 w-4" />
+            <Mail className="mr-2 h-4 w-4" />
             Continue with Google
           </Button>
 
