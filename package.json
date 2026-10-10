@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "deploy": "vite build && npx wrangler pages deploy dist --project-name=bpo-nexus-command",
+    "deploy": "vite build && npx wrangler pages deploy dist --project-name=bpo-nexus-command --branch=main",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
