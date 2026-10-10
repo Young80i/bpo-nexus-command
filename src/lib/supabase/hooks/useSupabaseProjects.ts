@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabaseServices } from '../services';
 import type { Project as SupabaseProject } from '../types';
-import { projects as seedProjects } from '@/data/demo';
 import { supabaseProjectToAppProject, appProjectToSupabaseProject } from '../adapters';
 import type { Project as AppProject } from '@/data/demo';
 
@@ -10,7 +9,7 @@ export function useSupabaseProjects() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Load projects from Supabase or fallback to seed data
+  // Load projects directly from Supabase (No fake seed fallback)
   const loadProjects = useCallback(async () => {
     try {
       setLoading(true);
@@ -19,9 +18,10 @@ export function useSupabaseProjects() {
       const appProjects = data.map(supabaseProjectToAppProject);
       setProjects(appProjects);
     } catch (err) {
-      console.warn('Failed to load projects from Supabase, using seed data:', err);
-      // Fallback to seed data if Supabase fails
-      setProjects(seedProjects);
+      console.error('Failed to load projects from Supabase:', err);
+      setError(err instanceof Error ? err : new Error('Failed to load projects'));
+      // Return empty array on error so failures are visible and clean
+      setProjects([]);
     } finally {
       setLoading(false);
     }
@@ -44,10 +44,10 @@ export function useSupabaseProjects() {
       setProjects(prev => [appProject, ...prev]);
       return appProject;
     } catch (err) {
-  console.error('CREATE PROJECT FAILED:', err);
-  setError(err instanceof Error ? err : new Error('Failed to create project'));
-  throw err;
-}
+      console.error('CREATE PROJECT FAILED:', err);
+      setError(err instanceof Error ? err : new Error('Failed to create project'));
+      throw err;
+    }
   }, []);
 
   // Update an existing project

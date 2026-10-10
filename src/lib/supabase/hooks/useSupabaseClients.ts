@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { normalizeEmail } from '@/lib/utils';
 import { supabaseServices } from '../services';
 import type { Client as SupabaseClient } from '../types';
-import { clients as seedClients } from '@/data/demo';
 import { supabaseClientToAppClient, appClientToSupabaseClient } from '../adapters';
 import type { Client as AppClient } from '@/data/demo';
 
@@ -11,7 +10,7 @@ export function useSupabaseClients() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Load clients from Supabase or fallback to seed data
+  // Load clients directly from Supabase (No fake seed fallback)
   const loadClients = useCallback(async () => {
     try {
       setLoading(true);
@@ -20,9 +19,10 @@ export function useSupabaseClients() {
       const appClients = data.map(supabaseClientToAppClient);
       setClients(appClients);
     } catch (err) {
-      console.warn('Failed to load clients from Supabase, using seed data:', err);
-      // Fallback to seed data if Supabase fails
-      setClients(seedClients);
+      console.error('Failed to load clients from Supabase:', err);
+      setError(err instanceof Error ? err : new Error('Failed to load clients'));
+      // Return empty array on error so failures are visible and clean
+      setClients([]);
     } finally {
       setLoading(false);
     }

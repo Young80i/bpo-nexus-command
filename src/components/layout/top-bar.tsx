@@ -75,7 +75,7 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
               <DropdownMenuItem
                 onClick={async () => {
                   await signOut();
-                  navigate({ to: "/auth/login" });
+                  navigate({ to: "/login" });
                 }}
               >
                 <LogOut className="mr-2 h-4 w-4" /> Sign out
@@ -84,7 +84,7 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
           </DropdownMenu>
         ) : (
           <Button variant="outline" size="sm" className="ml-1 gap-1.5" asChild>
-            <Link to="/auth/login">
+            <Link to="/login">
               <LogIn className="h-4 w-4" /> Sign in
             </Link>
           </Button>

@@ -14,7 +14,7 @@ import {
   Bot,
   Globe,
   Gamepad2,
-
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +29,7 @@ const main = [
 const work = [
   { title: "Milestones", url: "/milestones", icon: Flag },
   { title: "Tasks", url: "/tasks", icon: CheckSquare },
+  { title: "Invoices", url: "/invoices", icon: Receipt },
   { title: "Files", url: "/files", icon: FileText },
   { title: "Calendar", url: "/calendar", icon: CalendarDays },
 ];
@@ -39,7 +40,6 @@ const ai = [
   { title: "Website Dev", url: "/website", icon: Globe },
   { title: "Game Dev", url: "/game-dev", icon: Gamepad2 },
 ];
-
 
 const insight = [
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
@@ -107,8 +107,8 @@ export function AppSidebar({ open }: { open: boolean }) {
     >
       <div className="flex h-full flex-col">
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl brand-gradient text-primary-foreground shadow-[var(--shadow-soft)]">
-            <Sparkles className="h-[1.1rem] w-[1.1rem]" />
+          <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-sidebar-accent shadow-[var(--shadow-soft)]">
+            <img src="/logo.png" alt="BPO Nexus Logo" className="h-full w-full object-cover" />
           </div>
           <div className="min-w-0">
             <p className="truncate font-display text-[0.98rem] font-bold leading-tight">BPO Nexus</p>

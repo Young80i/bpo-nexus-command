@@ -1,10 +1,5 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import {
-  conversations as seedConversations,
-  devTracks as seedTracks,
-  messages as seedMessages,
-  milestones as seedMilestones,
-  prompts as seedPrompts,
   type Conversation,
   type DevStage,
   type Message,
@@ -50,6 +45,8 @@ type Ctx = {
 
   tracks: Record<string, StageProgress[]>;
   setStageProgress: (projectId: string, stage: DevStage, progress: number) => void;
+  resetTrack: (projectId: string) => void;
+  deleteTrack: (projectId: string) => void;
 };
 
 const WorkspaceContext = createContext<Ctx | null>(null);
@@ -66,11 +63,11 @@ function initials(name: string) {
 }
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
-  const [milestones, setMilestones] = usePersistentState<Milestone[]>("milestones", seedMilestones);
-  const [conversations, setConversations] = usePersistentState<Conversation[]>("conversations", seedConversations);
-  const [messages, setMessages] = usePersistentState<Message[]>("messages", seedMessages);
-  const [prompts, setPrompts] = usePersistentState<Prompt[]>("prompts", seedPrompts);
-  const [tracks, setTracks] = usePersistentState<Record<string, StageProgress[]>>("tracks", seedTracks);
+  const [milestones, setMilestones] = usePersistentState<Milestone[]>("milestones", []);
+  const [conversations, setConversations] = usePersistentState<Conversation[]>("conversations", []);
+  const [messages, setMessages] = usePersistentState<Message[]>("messages", []);
+  const [prompts, setPrompts] = usePersistentState<Prompt[]>("prompts", []);
+  const [tracks, setTracks] = usePersistentState<Record<string, StageProgress[]>>("tracks", {});
 
   const value = useMemo<Ctx>(
     () => ({
@@ -178,6 +175,21 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             s.stage === stage ? { ...s, progress } : s,
           ),
         })),
+
+      // Resets all stages for a specific project back to 0%
+      resetTrack: (projectId) =>
+        setTracks((prev) => ({
+          ...prev,
+          [projectId]: (prev[projectId] ?? []).map((s) => ({ ...s, progress: 0 })),
+        })),
+
+      // Removes the track completely from local state
+      deleteTrack: (projectId) =>
+        setTracks((prev) => {
+          const next = { ...prev };
+          delete next[projectId];
+          return next;
+        }),
     }),
     [milestones, conversations, messages, prompts, tracks, setMilestones, setConversations, setMessages, setPrompts, setTracks],
   );

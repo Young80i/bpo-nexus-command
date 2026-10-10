@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Gamepad2, Bug, CheckCircle2, Circle, Loader2 } from "lucide-react";
+import { Gamepad2, Bug, CheckCircle2, Circle, Loader2, Trash2, RotateCcw, Plus } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { ProgressBar } from "@/components/badges";
-import { gameTracks, trackCompletion, type GameStage } from "@/data/game";
+import { Button } from "@/components/ui/button";
+import { gameTracks as initialGameTracks, trackCompletion, type GameStage } from "@/data/game";
+import { usePersistentState } from "@/lib/persist";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/game-dev")({
   head: () => ({
@@ -22,29 +25,95 @@ export const Route = createFileRoute("/game-dev")({
   component: GameDevPage,
 });
 
-function GameDevPage() {
-  const [trackId, setTrackId] = useState(gameTracks[0]?.projectId ?? "");
-  const [overrides, setOverrides] = useState<Record<string, number>>({});
-
-  const track = gameTracks.find((t) => t.projectId === trackId) ?? gameTracks[0];
-
-  const stages = useMemo(
-    () =>
-      (track?.stages ?? []).map((s) => ({
-        ...s,
-        progress: overrides[`${track?.projectId}:${s.stage}`] ?? s.progress,
-      })),
-    [track, overrides],
+export function GameDevPage() {
+  const [tracks, setTracks] = usePersistentState<typeof initialGameTracks>(
+    "game-tracks-v5",
+    initialGameTracks
   );
 
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+
+  const activeTrack = useMemo(() => {
+    if (!tracks || tracks.length === 0) return null;
+    return tracks.find((t) => t.projectId === selectedProjectId) ?? tracks[0];
+  }, [tracks, selectedProjectId]);
+
+  const stages = activeTrack?.stages ?? [];
   const overall = trackCompletion(stages);
-  const openBugs = stages.reduce((s, x) => s + x.openBugs, 0);
+  const openBugs = stages.reduce((s, x) => s + (x.openBugs || 0), 0);
   const shipped = stages.filter((s) => s.progress === 100).length;
 
-  const setProgress = (stage: GameStage, value: number) =>
-    setOverrides((prev) => ({ ...prev, [`${track?.projectId}:${stage}`]: value }));
+  const updateStageProgress = (stageName: GameStage, value: number) => {
+    if (!activeTrack) return;
+    setTracks((prev) =>
+      (prev || []).map((t) => {
+        if (t.projectId !== activeTrack.projectId) return t;
+        return {
+          ...t,
+          stages: t.stages.map((s) => (s.stage === stageName ? { ...s, progress: value } : s)),
+        };
+      })
+    );
+  };
 
-  if (!track) return null;
+  const handleResetTrack = () => {
+    if (!activeTrack) return;
+    setTracks((prev) =>
+      (prev || []).map((t) => {
+        if (t.projectId !== activeTrack.projectId) return t;
+        return {
+          ...t,
+          stages: t.stages.map((s) => ({ ...s, progress: 0 })),
+        };
+      })
+    );
+    toast.success(`Reset progress for "${activeTrack.title}"`);
+  };
+
+  const handleDeleteTrack = () => {
+    if (!activeTrack) return;
+    const deletedTitle = activeTrack.title;
+    const remaining = (tracks || []).filter((t) => t.projectId !== activeTrack.projectId);
+    setTracks(remaining);
+    setSelectedProjectId(remaining[0]?.projectId ?? "");
+    toast.success(`Deleted "${deletedTitle}" track permanently`);
+  };
+
+  const handleCreateNewTrack = () => {
+    const newId = `game-proj-${Date.now()}`;
+    const newTrack = {
+      projectId: newId,
+      title: "New Indie Project",
+      engine: "Unreal Engine 5",
+      platforms: ["PC", "PS5"],
+      build: "v0.1.0-alpha",
+      stages: [
+        { stage: "Narrative & Worldbuilding" as GameStage, progress: 0, owner: "Writer", openBugs: 0, note: "Initial story concept." },
+        { stage: "Core Gameplay Mechanics" as GameStage, progress: 0, owner: "Designer", openBugs: 0, note: "Controls prototype." },
+        { stage: "Level Design & Environment" as GameStage, progress: 0, owner: "Artist", openBugs: 0, note: "Greyboxing." },
+      ],
+    };
+    setTracks([newTrack, ...(tracks || [])]);
+    setSelectedProjectId(newId);
+    toast.success("Created new game track!");
+  };
+
+  if (!activeTrack) {
+    return (
+      <div className="animate-fade-in">
+        <PageHeader
+          title="Game Development"
+          description="Production pipeline from narrative design through publishing and post-launch fixes"
+        />
+        <div className="surface-card p-12 text-center">
+          <p className="text-sm text-muted-foreground">No active game development tracks.</p>
+          <Button className="mt-4 gap-2" onClick={handleCreateNewTrack}>
+            <Plus className="h-4 w-4" /> Create Game Track
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
@@ -52,17 +121,22 @@ function GameDevPage() {
         title="Game Development"
         description="Production pipeline from narrative design through publishing and post-launch fixes"
         actions={
-          <select
-            value={track.projectId}
-            onChange={(e) => setTrackId(e.target.value)}
-            className="h-9 rounded-lg border border-input bg-background px-3 text-sm"
-          >
-            {gameTracks.map((t) => (
-              <option key={t.projectId} value={t.projectId}>
-                {t.title}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <select
+              value={activeTrack.projectId}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              className="h-9 rounded-lg border border-input bg-background px-3 text-sm"
+            >
+              {tracks.map((t) => (
+                <option key={t.projectId} value={t.projectId}>
+                  {t.title}
+                </option>
+              ))}
+            </select>
+            <Button size="sm" variant="outline" onClick={handleCreateNewTrack} className="gap-1">
+              <Plus className="h-4 w-4" /> New Track
+            </Button>
+          </div>
         }
       />
 
@@ -73,15 +147,38 @@ function GameDevPage() {
               <Gamepad2 className="h-5 w-5" />
             </span>
             <div className="min-w-0">
-              <p className="truncate font-display text-lg font-bold">{track.title}</p>
+              <p className="truncate font-display text-lg font-bold">{activeTrack.title}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {track.engine} · {track.platforms.join(" / ")} · build {track.build}
+                {activeTrack.engine} · {activeTrack.platforms.join(" / ")} · build {activeTrack.build}
               </p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Completion</p>
-            <p className="font-display text-3xl font-bold">{overall}%</p>
+
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Completion</p>
+              <p className="font-display text-3xl font-bold">{overall}%</p>
+            </div>
+            <div className="flex items-center gap-1 pl-2 border-l border-border">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleResetTrack}
+                title="Reset all stages to 0%"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDeleteTrack}
+                title="Delete this game track permanently"
+                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -107,7 +204,7 @@ function GameDevPage() {
               title={`${s.stage} — ${s.progress}%`}
               className={cn(
                 "h-2 flex-1 rounded-full",
-                s.progress === 100 ? "bg-success" : s.progress > 0 ? "bg-primary/60" : "bg-surface-2",
+                s.progress === 100 ? "bg-success" : s.progress > 0 ? "bg-primary/60" : "bg-surface-2"
               )}
             />
           ))}
@@ -123,7 +220,7 @@ function GameDevPage() {
               <span
                 className={cn(
                   "absolute -left-[2.35rem] top-4 grid h-6 w-6 place-items-center rounded-full border bg-background",
-                  done ? "border-success text-success" : active ? "border-primary text-primary" : "border-border text-muted-foreground",
+                  done ? "border-success text-success" : active ? "border-primary text-primary" : "border-border text-muted-foreground"
                 )}
               >
                 {done ? (
@@ -146,7 +243,7 @@ function GameDevPage() {
                   <span
                     className={cn(
                       "ml-auto font-display text-sm font-bold",
-                      done ? "text-success" : active ? "text-primary" : "text-muted-foreground",
+                      done ? "text-success" : active ? "text-primary" : "text-muted-foreground"
                     )}
                   >
                     {s.progress}%
@@ -160,8 +257,8 @@ function GameDevPage() {
                   max={100}
                   step={5}
                   value={s.progress}
-                  onChange={(e) => setProgress(s.stage, Number(e.target.value))}
-                  className="mt-3 w-full accent-primary"
+                  onChange={(e) => updateStageProgress(s.stage, Number(e.target.value))}
+                  className="mt-3 w-full accent-primary cursor-pointer"
                 />
               </div>
             </li>

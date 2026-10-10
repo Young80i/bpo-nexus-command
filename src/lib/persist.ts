@@ -3,32 +3,39 @@ import { useEffect, useRef, useState } from "react";
 const PREFIX = "bpo-nexus:";
 
 /**
- * SSR-safe persisted state. Starts from `initial` on the server and during the
- * first client render, then hydrates from localStorage and autosaves on change.
+ * SSR-safe persisted state. Synchronously hydrates from localStorage on the initial
+ * client render so that route changes and tab switching NEVER re-inject seed data.
  */
 export function usePersistentState<T>(key: string, initial: T) {
-  const [value, setValue] = useState<T>(initial);
-  const hydrated = useRef(false);
+  const fullKey = PREFIX + key;
 
-  useEffect(() => {
+  // Lazy initializer reads localStorage synchronously on first render
+  const [value, setValue] = useState<T>(() => {
+    if (typeof window === "undefined") return initial;
     try {
-      const raw = window.localStorage.getItem(PREFIX + key);
-      if (raw) setValue(JSON.parse(raw) as T);
+      const raw = window.localStorage.getItem(fullKey);
+      if (raw !== null) {
+        return JSON.parse(raw) as T;
+      }
     } catch {
       /* ignore corrupt storage */
     }
-    hydrated.current = true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+    return initial;
+  });
 
+  const isFirstRender = useRef(true);
+
+  // Sync to localStorage whenever value or key changes
   useEffect(() => {
-    if (!hydrated.current) return;
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+    }
     try {
-      window.localStorage.setItem(PREFIX + key, JSON.stringify(value));
+      window.localStorage.setItem(fullKey, JSON.stringify(value));
     } catch {
       /* quota or serialization failure — keep in-memory state */
     }
-  }, [key, value]);
+  }, [fullKey, value]);
 
   return [value, setValue] as const;
 }

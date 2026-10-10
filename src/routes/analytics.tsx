@@ -24,24 +24,27 @@ import {
   Bot,
   Clock3,
   Repeat2,
+  RotateCcw,
   Smile,
   Target,
+  Trash2,
   TrendingUp,
   Trophy,
   Wallet,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { projects } from "@/data/demo";
 import {
-  aiTrend,
-  aiUsage,
-  analyticsData,
+  aiTrend as initialAiTrend,
+  aiUsage as initialAiUsage,
+  analyticsData as initialAnalyticsData,
   analyticsRanges,
-  projectTypeMix,
+  projectTypeMix as initialProjectTypeMix,
   type AnalyticsRange,
 } from "@/data/analytics";
+import { usePersistentState } from "@/lib/persist";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/analytics")({
   head: () => ({
@@ -75,28 +78,70 @@ function ChartTooltip({ active, payload, label }: any) {
   );
 }
 
-function AnalyticsPage() {
+export function AnalyticsPage() {
   const [range, setRange] = useState<AnalyticsRange>("12m");
   const [typeFilter, setTypeFilter] = useState("all");
-  const data = analyticsData[range];
 
-  const typeMix = useMemo(
-    () => (typeFilter === "all" ? projectTypeMix : projectTypeMix.filter((t) => t.type === typeFilter)),
-    [typeFilter],
+  const [persistentData, setPersistentData] = usePersistentState(
+    "bpo-analytics-data-v3",
+    JSON.parse(JSON.stringify(initialAnalyticsData))
+  );
+  const [persistentAiUsage, setPersistentAiUsage] = usePersistentState(
+    "bpo-analytics-ai-v3",
+    JSON.parse(JSON.stringify(initialAiUsage))
+  );
+  const [persistentTypeMix, setPersistentTypeMix] = usePersistentState(
+    "bpo-analytics-type-v3",
+    JSON.parse(JSON.stringify(initialProjectTypeMix))
   );
 
+  const data = persistentData[range] ?? initialAnalyticsData[range];
+
+  const typeMix = useMemo(
+    () => (typeFilter === "all" ? persistentTypeMix : persistentTypeMix.filter((t) => t.type === typeFilter)),
+    [typeFilter, persistentTypeMix],
+  );
+
+  const handleResetAnalytics = () => {
+    const zeroed = JSON.parse(JSON.stringify(initialAnalyticsData));
+    Object.keys(zeroed).forEach((k) => {
+      const r = k as AnalyticsRange;
+      zeroed[r].revenue = 0;
+      zeroed[r].monthlyRevenue = 0;
+      zeroed[r].completedProjects = 0;
+      zeroed[r].avgCompletionDays = 0;
+      zeroed[r].winRate = 0;
+      zeroed[r].revisionRate = 0;
+      zeroed[r].satisfaction = 0;
+      zeroed[r].revenueSeries = [];
+      zeroed[r].completionSeries = [];
+      zeroed[r].winRateSeries = [];
+      zeroed[r].satisfactionSeries = [];
+    });
+
+    setPersistentData(zeroed);
+    setPersistentAiUsage([]);
+    setPersistentTypeMix([]);
+    toast.success("All analytics metrics cleared & reset!");
+  };
+
+  const handleDeleteAiTool = (toolName: string) => {
+    setPersistentAiUsage((prev) => prev.filter((a) => a.tool !== toolName));
+    toast.success(`Removed "${toolName}" from AI metrics`);
+  };
+
   const kpis = [
-    { label: "Total Revenue", value: `$${data.revenue.toLocaleString()}`, sub: "normalised to USD", icon: Wallet, tone: "text-primary" },
-    { label: "Monthly Revenue", value: `$${data.monthlyRevenue.toLocaleString()}`, sub: "run-rate average", icon: TrendingUp, tone: "text-success" },
-    { label: "Completed Projects", value: String(data.completedProjects), sub: `${projects.length} total engagements`, icon: Trophy, tone: "text-info" },
-    { label: "Avg Completion Time", value: `${data.avgCompletionDays} days`, sub: "kickoff to handover", icon: Clock3, tone: "text-warning" },
-    { label: "Win Rate", value: `${data.winRate}%`, sub: "proposals converted", icon: Target, tone: "text-primary" },
-    { label: "Revision Rate", value: `${data.revisionRate}%`, sub: "milestones reworked", icon: Repeat2, tone: "text-destructive" },
-    { label: "Client Satisfaction", value: `${data.satisfaction.toFixed(1)} / 5`, sub: "post-delivery survey", icon: Smile, tone: "text-success" },
-    { label: "AI Hours Saved", value: `${aiUsage.reduce((s, a) => s + a.hoursSaved, 0)}h`, sub: "across Claude, Lovable, Base44", icon: Bot, tone: "text-info" },
+    { label: "Total Revenue", value: `$${(data.revenue || 0).toLocaleString()}`, sub: "normalised to USD", icon: Wallet, tone: "text-primary" },
+    { label: "Monthly Revenue", value: `$${(data.monthlyRevenue || 0).toLocaleString()}`, sub: "run-rate average", icon: TrendingUp, tone: "text-success" },
+    { label: "Completed Projects", value: String(data.completedProjects || 0), sub: `${data.completedProjects || 0} total engagements`, icon: Trophy, tone: "text-info" },
+    { label: "Avg Completion Time", value: `${data.avgCompletionDays || 0} days`, sub: "kickoff to handover", icon: Clock3, tone: "text-warning" },
+    { label: "Win Rate", value: `${data.winRate || 0}%`, sub: "proposals converted", icon: Target, tone: "text-primary" },
+    { label: "Revision Rate", value: `${data.revisionRate || 0}%`, sub: "milestones reworked", icon: Repeat2, tone: "text-destructive" },
+    { label: "Client Satisfaction", value: `${(data.satisfaction || 0).toFixed(1)} / 5`, sub: "post-delivery survey", icon: Smile, tone: "text-success" },
+    { label: "AI Hours Saved", value: `${persistentAiUsage.reduce((s, a) => s + (a.hoursSaved || 0), 0)}h`, sub: "across active tools", icon: Bot, tone: "text-info" },
   ];
 
-  const satisfactionGauge = [{ name: "Satisfaction", value: (data.satisfaction / 5) * 100, fill: "var(--chart-1)" }];
+  const satisfactionGauge = [{ name: "Satisfaction", value: ((data.satisfaction || 0) / 5) * 100, fill: "var(--chart-1)" }];
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -111,7 +156,7 @@ function AnalyticsPage() {
               className="h-9 rounded-lg border border-input bg-background px-3 text-sm"
             >
               <option value="all">All project types</option>
-              {projectTypeMix.map((t) => (
+              {persistentTypeMix.map((t) => (
                 <option key={t.type} value={t.type}>
                   {t.type}
                 </option>
@@ -131,8 +176,8 @@ function AnalyticsPage() {
                 </button>
               ))}
             </div>
-            <Button variant="outline" size="sm">
-              Export board pack
+            <Button variant="outline" size="sm" onClick={handleResetAnalytics} className="gap-1.5">
+              <RotateCcw className="h-3.5 w-3.5" /> Reset Data
             </Button>
           </div>
         }
@@ -156,7 +201,7 @@ function AnalyticsPage() {
           <h2 className="text-base font-semibold">Revenue vs Target</h2>
           <p className="mb-3 text-xs text-muted-foreground">Booked revenue against plan for the selected range</p>
           <ResponsiveContainer width="100%" height={280}>
-            <ComposedChart data={data.revenueSeries} margin={{ left: 4, right: 6, top: 6 }}>
+            <ComposedChart data={data.revenueSeries || []} margin={{ left: 4, right: 6, top: 6 }}>
               <defs>
                 <linearGradient id="ar" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.45} />
@@ -188,15 +233,15 @@ function AnalyticsPage() {
               <RadialBar dataKey="value" cornerRadius={12} background={{ fill: "var(--surface-2)" }} />
             </RadialBarChart>
           </ResponsiveContainer>
-          <p className="-mt-16 mb-10 text-center font-display text-3xl font-bold">{data.satisfaction.toFixed(1)}</p>
+          <p className="-mt-16 mb-10 text-center font-display text-3xl font-bold">{(data.satisfaction || 0).toFixed(1)}</p>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-lg border border-border bg-surface-2 p-3">
               <p className="text-[0.7rem] text-muted-foreground">Revision rate</p>
-              <p className="mt-0.5 font-display text-lg font-bold">{data.revisionRate}%</p>
+              <p className="mt-0.5 font-display text-lg font-bold">{data.revisionRate || 0}%</p>
             </div>
             <div className="rounded-lg border border-border bg-surface-2 p-3">
               <p className="text-[0.7rem] text-muted-foreground">Win rate</p>
-              <p className="mt-0.5 font-display text-lg font-bold">{data.winRate}%</p>
+              <p className="mt-0.5 font-display text-lg font-bold">{data.winRate || 0}%</p>
             </div>
           </div>
         </div>
@@ -207,7 +252,7 @@ function AnalyticsPage() {
           <h2 className="text-base font-semibold">Completed Projects & Cycle Time</h2>
           <p className="mb-3 text-xs text-muted-foreground">Deliveries and average days to completion</p>
           <ResponsiveContainer width="100%" height={220}>
-            <ComposedChart data={data.completionSeries} margin={{ left: -14, right: 6 }}>
+            <ComposedChart data={data.completionSeries || []} margin={{ left: -14, right: 6 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis dataKey="period" tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
               <YAxis tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
@@ -222,7 +267,7 @@ function AnalyticsPage() {
           <h2 className="text-base font-semibold">Win Rate</h2>
           <p className="mb-3 text-xs text-muted-foreground">Proposals won versus lost</p>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={data.winRateSeries} margin={{ left: -14, right: 6 }}>
+            <BarChart data={data.winRateSeries || []} margin={{ left: -14, right: 6 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis dataKey="period" tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
               <YAxis tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
@@ -237,7 +282,7 @@ function AnalyticsPage() {
           <h2 className="text-base font-semibold">Revisions vs Satisfaction</h2>
           <p className="mb-3 text-xs text-muted-foreground">Rework volume against survey score</p>
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={data.satisfactionSeries} margin={{ left: -14, right: 6 }}>
+            <LineChart data={data.satisfactionSeries || []} margin={{ left: -14, right: 6 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis dataKey="period" tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
               <YAxis tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
@@ -269,7 +314,7 @@ function AnalyticsPage() {
                 <li key={t.type} className="flex items-center gap-2 text-xs">
                   <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: pieColors[i % pieColors.length] }} />
                   <span className="min-w-0 flex-1 truncate">{t.type}</span>
-                  <span className="shrink-0 font-semibold">${(t.revenue / 1000).toFixed(0)}k</span>
+                  <span className="shrink-0 font-semibold">${((t.revenue || 0) / 1000).toFixed(0)}k</span>
                 </li>
               ))}
             </ul>
@@ -280,7 +325,7 @@ function AnalyticsPage() {
           <h2 className="text-base font-semibold">AI Usage Statistics</h2>
           <p className="mb-3 text-xs text-muted-foreground">Prompt volume per assistant and delivery leverage</p>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={aiTrend} margin={{ left: -14, right: 6, top: 6 }}>
+            <AreaChart data={initialAiTrend} margin={{ left: -14, right: 6, top: 6 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis dataKey="period" tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
               <YAxis tickLine={false} axisLine={false} fontSize={12} stroke="var(--muted-foreground)" />
@@ -295,7 +340,7 @@ function AnalyticsPage() {
             <table className="w-full min-w-[420px] text-xs">
               <thead className="text-left uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  {["Tool", "Prompts", "Tokens (M)", "Hours saved", "Cost"].map((h) => (
+                  {["Tool", "Prompts", "Tokens (M)", "Hours saved", "Cost", ""].map((h) => (
                     <th key={h} className="py-2 font-semibold">
                       {h}
                     </th>
@@ -303,15 +348,32 @@ function AnalyticsPage() {
                 </tr>
               </thead>
               <tbody>
-                {aiUsage.map((a) => (
-                  <tr key={a.tool} className="border-t border-border/60">
+                {persistentAiUsage.map((a) => (
+                  <tr key={a.tool} className="border-t border-border/60 group">
                     <td className="py-2 font-medium">{a.tool}</td>
                     <td className="py-2 text-muted-foreground">{a.prompts.toLocaleString()}</td>
                     <td className="py-2 text-muted-foreground">{a.tokens}</td>
                     <td className="py-2 text-muted-foreground">{a.hoursSaved}h</td>
                     <td className="py-2 text-muted-foreground">${a.cost}</td>
+                    <td className="py-2 text-right">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteAiTool(a.tool)}
+                        className="rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                        title="Delete tool metric"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
+                {!persistentAiUsage.length && (
+                  <tr>
+                    <td colSpan={6} className="py-4 text-center text-xs text-muted-foreground">
+                      No AI metrics recorded.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

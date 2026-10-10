@@ -1,92 +1,134 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabaseServices } from '../services';
-import type { Repository } from '../types';
-import { vaultFiles as seedFiles } from '@/data/files';
+import { supabase } from '../client';
+
+export interface VaultFile {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+  storage_path: string;
+  project_id?: string;
+  category?: string;
+  tags?: string[];
+  created_at?: string;
+}
 
 export function useSupabaseFiles() {
-  const [files, setFiles] = useState<any[]>([]);
+  const [files, setFiles] = useState<VaultFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Load files from localStorage (for now, until we have a files table)
-  const loadFiles = useCallback(async () => {
+  // Fetch file metadata from the repositories table
+  const fetchFiles = useCallback(async () => {
     try {
       setLoading(true);
-      // For now, we'll use the existing localStorage approach
-      // In the future, this will load from Supabase repositories table
-      const stored = localStorage.getItem('bpo-nexus:files');
-      if (stored) {
-        setFiles(JSON.parse(stored));
-      } else {
-        setFiles(seedFiles);
-      }
+      setError(null);
+      const { data, error: dbError } = await supabase
+        .from('repositories')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (dbError) throw dbError;
+      setFiles(data || []);
     } catch (err) {
-      console.warn('Failed to load files, using seed data:', err);
-      setFiles(seedFiles);
+      console.error('Failed to fetch vault files:', err);
+      setError(err instanceof Error ? err : new Error('Failed to fetch files'));
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Initialize files on mount
   useEffect(() => {
-    loadFiles().catch(setError);
-  }, [loadFiles]);
+    fetchFiles();
+  }, [fetchFiles]);
 
-  // Persist files to localStorage
-  const persistFiles = useCallback((filesToSave: any[]) => {
+  // Upload file to Supabase Storage bucket 'vault' and record metadata in DB
+  const uploadFile = useCallback(async (file: File, metadata?: { projectId?: string; category?: string; tags?: string[] }) => {
     try {
-      localStorage.setItem('bpo-nexus:files', JSON.stringify(filesToSave));
-      setFiles(filesToSave);
+      setError(null);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      const filePath = `uploads/${fileName}`;
+
+      // 1. Upload binary file to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('vault')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // 2. Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('vault')
+        .getPublicUrl(filePath);
+
+      // 3. Save metadata record into database
+      const newRecord = {
+        name: file.name,
+        size: file.size,
+        type: file.type || fileExt || 'unknown',
+        url: publicUrl,
+        storage_path: filePath,
+        project_id: metadata?.projectId || null,
+        category: metadata?.category || 'general',
+        tags: metadata?.tags || [],
+      };
+
+      const { data: dbData, error: dbError } = await supabase
+        .from('repositories')
+        .insert([newRecord])
+        .select()
+        .single();
+
+      if (dbError) throw dbError;
+
+      setFiles(prev => [dbData, ...prev]);
+      return dbData;
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to persist files'));
-      throw err;
+      console.error('Failed to upload file:', err);
+      const fileErr = err instanceof Error ? err : new Error('Failed to upload file');
+      setError(fileErr);
+      throw fileErr;
     }
   }, []);
 
-  // Add a new file
-  const addFile = useCallback(async (fileData: Omit<any, 'id'>) => {
+  // Delete file from both Storage and Database
+  const deleteFile = useCallback(async (id: string, storagePath: string) => {
     try {
-      const newFile = { ...fileData, id: `f${Date.now()}` };
-      const updatedFiles = [newFile, ...files];
-      persistFiles(updatedFiles);
-      return newFile;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to add file'));
-      throw err;
-    }
-  }, [files, persistFiles]);
+      setError(null);
 
-  // Update an existing file
-  const updateFile = useCallback(async (id: string, updates: Partial<any>) => {
-    try {
-      const updatedFiles = files.map(file => file.id === id ? { ...file, ...updates } : file);
-      persistFiles(updatedFiles);
-      return updatedFiles.find(file => file.id === id);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to update file'));
-      throw err;
-    }
-  }, [files, persistFiles]);
+      // 1. Delete from Supabase Storage if path exists
+      if (storagePath) {
+        const { error: storageError } = await supabase.storage
+          .from('vault')
+          .remove([storagePath]);
+        if (storageError) console.warn('Storage deletion warning:', storageError);
+      }
 
-  // Delete a file
-  const deleteFile = useCallback(async (id: string) => {
-    try {
-      const updatedFiles = files.filter(file => file.id !== id);
-      persistFiles(updatedFiles);
+      // 2. Delete record from database
+      const { error: dbError } = await supabase
+        .from('repositories')
+        .delete()
+        .eq('id', id);
+
+      if (dbError) throw dbError;
+
+      setFiles(prev => prev.filter(f => f.id !== id));
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to delete file'));
-      throw err;
+      console.error('Failed to delete file:', err);
+      const delErr = err instanceof Error ? err : new Error('Failed to delete file');
+      setError(delErr);
+      throw delErr;
     }
-  }, [files, persistFiles]);
+  }, []);
 
   return {
     files,
     loading,
     error,
-    addFile,
-    updateFile,
+    uploadFile,
     deleteFile,
-    refresh: loadFiles
+    refresh: fetchFiles
   };
 }

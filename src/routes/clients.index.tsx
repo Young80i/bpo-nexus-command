@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowUpDown, MessageSquare, Pencil, Search, Star, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/app-shell";
@@ -118,7 +118,7 @@ function ClientsPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {visible.map((c) => (
           <div key={c.id} className="surface-card lift group relative p-5">
-            <Link to="/clients/$clientId" params={{ clientId: c.id }} className="block">
+            <div className="block">
               <div className="flex items-start gap-3">
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl brand-gradient text-sm font-bold text-primary-foreground">
                   {c.name
@@ -165,7 +165,7 @@ function ClientsPage() {
                   {c.status}
                 </span>
               </div>
-            </Link>
+            </div>
 
             <div className="mt-3 flex items-center gap-1.5 border-t border-border/70 pt-3">
               <Button variant="outline" size="sm" onClick={() => navigate({ to: "/conversations" })}>
