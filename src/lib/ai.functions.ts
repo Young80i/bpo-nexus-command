@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-router";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
 import {
