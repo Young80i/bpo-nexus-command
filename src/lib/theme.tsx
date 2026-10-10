@@ -1,28 +1,36 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 type Theme = "light" | "dark";
-const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({
+
+interface ThemeContextType {
+  theme: Theme;
+  toggle: () => void; // <-- changed to match TopBar
+}
+
+const ThemeContext = createContext<ThemeContextType>({
   theme: "dark",
   toggle: () => {},
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
-
-  useEffect(() => {
+  const [theme, setTheme] = useState<Theme>(() => {
     const stored = window.localStorage.getItem("bpo-theme") as Theme | null;
-    if (stored) setTheme(stored);
-  }, []);
+    return stored || "dark";
+  });
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
+    const root = document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(theme);
     window.localStorage.setItem("bpo-theme", theme);
   }, [theme]);
 
+  const toggle = () => { // <-- changed to match TopBar
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
+
   return (
-    <ThemeContext.Provider
-      value={{ theme, toggle: () => setTheme((t) => (t === "dark" ? "light" : "dark")) }}
-    >
+    <ThemeContext.Provider value={{ theme, toggle }}>
       {children}
     </ThemeContext.Provider>
   );
