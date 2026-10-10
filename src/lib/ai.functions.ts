@@ -1,5 +1,4 @@
-import { createServerFn } from "@tanstack/react-router";
-import { generateText, NoObjectGeneratedError, Output } from "ai";
+import { generateObject, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import {
   createAIProvider,
@@ -78,15 +77,14 @@ async function generateWithFallback<T>({
   try {
     console.log(`[JARVIS] Primary model: ${CTO_MODEL}`);
 
-    const { output } = await generateText({
+    const { object } = await generateObject({
       model: primaryModel(),
-      output: Output.object({ schema }),
+      schema: schema,
       prompt,
     });
 
     console.log(`[JARVIS] Primary model succeeded.`);
-
-    return output;
+    return object;
   } catch (primaryError) {
     const primaryMessage =
       primaryError instanceof Error
@@ -101,15 +99,14 @@ async function generateWithFallback<T>({
     try {
       console.log(`[JARVIS] Fallback model: ${CTO_FALLBACK_MODEL}`);
 
-      const { output } = await generateText({
+      const { object } = await generateObject({
         model: fallbackModel(),
-        output: Output.object({ schema }),
+        schema: schema,
         prompt,
       });
 
       console.log(`[JARVIS] Fallback model succeeded.`);
-
-      return output;
+      return object;
     } catch (fallbackError) {
       const fallbackMessage =
         fallbackError instanceof Error
@@ -129,14 +126,11 @@ async function generateWithFallback<T>({
   }
 }
 
-export const analyseBrief = createServerFn({ method: "POST" })
-  .validator((data: unknown) =>
-    z.object({
-      text: z.string().min(20),
-    }).parse(data),
-  )
-  .handler(async ({ data }): Promise<BriefAnalysis> => {
-    const prompt = `You are a senior software architect and delivery lead for a solo AI agency working on Freelancer.com.
+export const analyseBrief = async (data: { text: string }): Promise<BriefAnalysis> => {
+  // Validate input
+  z.object({ text: z.string().min(20) }).parse(data);
+
+  const prompt = `You are a senior software architect and delivery lead for a solo AI agency working on Freelancer.com.
 
 Analyse this project description and produce a delivery plan.
 
@@ -161,32 +155,28 @@ PROJECT DESCRIPTION:
 
 ${data.text}`;
 
-    try {
-      return await generateWithFallback({
-        schema: briefSchema,
-        prompt,
-      });
-    } catch (error) {
-      if (NoObjectGeneratedError.isInstance(error) && error.text) {
-        try {
-          return briefSchema.parse(JSON.parse(error.text));
-        } catch {
-          /* fall through */
-        }
+  try {
+    return await generateWithFallback({
+      schema: briefSchema,
+      prompt,
+    });
+  } catch (error) {
+    if (NoObjectGeneratedError.isInstance(error) && error.text) {
+      try {
+        return briefSchema.parse(JSON.parse(error.text));
+      } catch {
+        /* fall through */
       }
-
-      throw error;
     }
-  });
+    throw error;
+  }
+};
 
-export const analyseConversation = createServerFn({ method: "POST" })
-  .validator((data: unknown) =>
-    z.object({
-      text: z.string().min(20),
-    }).parse(data),
-  )
-  .handler(async ({ data }): Promise<ConversationAnalysis> => {
-    const prompt = `Analyse this client conversation from a Freelancer.com software project.
+export const analyseConversation = async (data: { text: string }): Promise<ConversationAnalysis> => {
+  // Validate input
+  z.object({ text: z.string().min(20) }).parse(data);
+
+  const prompt = `Analyse this client conversation from a Freelancer.com software project.
 
 Return:
 - A short summary
@@ -209,20 +199,19 @@ CONVERSATION:
 
 ${data.text}`;
 
-    try {
-      return await generateWithFallback({
-        schema: conversationSchema,
-        prompt,
-      });
-    } catch (error) {
-      if (NoObjectGeneratedError.isInstance(error) && error.text) {
-        try {
-          return conversationSchema.parse(JSON.parse(error.text));
-        } catch {
-          /* fall through */
-        }
+  try {
+    return await generateWithFallback({
+      schema: conversationSchema,
+      prompt,
+    });
+  } catch (error) {
+    if (NoObjectGeneratedError.isInstance(error) && error.text) {
+      try {
+        return conversationSchema.parse(JSON.parse(error.text));
+      } catch {
+        /* fall through */
       }
-
-      throw error;
     }
-  });
+    throw error;
+  }
+};
